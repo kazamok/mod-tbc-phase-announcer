@@ -1,5 +1,5 @@
 
-# `mod-tbc-phase-announcer`
+# `TBC phase announcer`
 
 이 모듈은 AzerothCore 기반의 리치 왕의 분노(WotLK) 서버에서 불타는 성전(TBC) 콘텐츠를 운영하는 데 특화되어 있습니다.
 
