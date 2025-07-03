@@ -24,7 +24,7 @@ void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)
         player->GetSession()->SendAreaTriggerMessage(message);
 
         // 채팅 메시지로도 출력
-        ChatHandler(player->GetSession()).PSendSysMessage("%s", message.c_str());
+        ChatHandler(player->GetSession()).PSendSysMessage(message);
     }
 }
 
