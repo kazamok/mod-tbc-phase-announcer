@@ -1,10 +1,10 @@
 #include "mod_tbc_phase_announcer.h"
 
-void mod_tbc_phase_announcer_player_script::OnLogin(Player* player)
+void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)
 {
     // TBC 콘텐츠 페이즈 안내 메시지 전송 로직
     // 플레이어가 월드에 완전히 추가된 후 메시지를 보냅니다.
-    uint32 currentTBCPhase = sWorld->getIntConfig(CONFIG_TBC_CONTENT_PHASE);
+    uint32 currentTBCPhase = sConfigMgr->GetOption<uint32>("TBC.ContentPhase", 1);
     std::string message;
     if (currentTBCPhase > 0 && currentTBCPhase < MAX_TBC_PHASE_MESSAGE)
         message = TBC_PHASE_MESSAGES[currentTBCPhase];

@@ -13,11 +13,5 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 # Add the module source files
-add_azerothcore_module(mod-tbc-phase-announcer
-    src/mod_tbc_phase_announcer.cpp
-)
-
-# Link against necessary libraries
-target_link_libraries(mod-tbc-phase-announcer PRIVATE
-    server
-)
+set(MODULE_NAME "mod-tbc-phase-announcer")
+AC_ADD_SCRIPT("${CMAKE_CURRENT_LIST_DIR}/src/mod_tbc_phase_announcer.cpp")

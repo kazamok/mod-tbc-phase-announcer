@@ -24,7 +24,7 @@ class mod_tbc_phase_announcer_player_script : public PlayerScript
 public:
     mod_tbc_phase_announcer_player_script() : PlayerScript("mod_tbc_phase_announcer_player_script") { }
 
-    void OnLogin(Player* player) override;
+    void OnPlayerLogin(Player* player) override;
 };
 
 #endif // MOD_TBC_PHASE_ANNOUNCER_H
