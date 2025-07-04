@@ -1,11 +1,63 @@
+# ---------------------------------------------------------------------------------------------------
+#
+# TBC Phase Announcer Module Configuration
+#
+# This configuration file controls the behavior of the TBC Phase Announcer module.
+# It allows server administrators to manually manage the content phases of The Burning Crusade
+# expansion and inform players about the current and upcoming phases.
+#
+# ---------------------------------------------------------------------------------------------------
+
 [mod-tbc-phase-announcer]
 
-###################################################################################################
-# 페이즈 관리 모듈 불러오기
-#
-#    
-#        Description: TBC.ContentPhase  0 이외 값을 페이즈에 맞게 입력
-#
-#        Default:     1
+# ---------------------------------------------------------------------------------------------------
+# CORE PHASE SETTINGS
+# These settings define the current active content phase of the server.
+# Changes to TBC.ContentPhase will trigger phase-specific content activations/deactivations
+# upon server startup or '.reload config' command.
+# ---------------------------------------------------------------------------------------------------
 
+# TBC.ContentPhase
+# Description: Sets the current active content phase for The Burning Crusade expansion.
+#              Valid values are integers from 1 to 5, corresponding to the TBC content phases.
+#              - Phase 1: Karazhan, Gruul's Lair, Magtheridon's Lair
+#              - Phase 2: Serpentshrine Cavern, Tempest Keep
+#              - Phase 3: Mount Hyjal, Black Temple
+#              - Phase 4: Zul'Aman
+#              - Phase 5: Sunwell Plateau
+# Default:     1
+# Example:     TBC.ContentPhase = 2
 TBC.ContentPhase = 1
+
+# ---------------------------------------------------------------------------------------------------
+# PHASE ANNOUNCEMENT DATES (INFORMATIONAL)
+# These settings are purely for informational purposes, used to display estimated
+# content release dates to players. They DO NOT automatically trigger phase changes.
+# Phase changes are controlled manually via the TBC.ContentPhase setting above.
+# Format:      YYYY-MM-DD (e.g., 2027-07-04)
+# Default:     "미정" (Undetermined) if not set or invalid.
+# ---------------------------------------------------------------------------------------------------
+
+# TBC.PhaseDateONE
+# Description: Estimated release date for Phase 1 content.
+TBC.PhaseDateONE = 2027-07-04
+
+# TBC.PhaseDateTWO
+# Description: Estimated release date for Phase 2 content.
+TBC.PhaseDateTWO = 2027-11-08
+
+# TBC.PhaseDateTHREE
+# Description: Estimated release date for Phase 3 content.
+TBC.PhaseDateTHREE = 2028-03-15
+
+# TBC.PhaseDateFOUR
+# Description: Estimated release date for Phase 4 content.
+TBC.PhaseDateFOUR = 2028-07-22
+
+# TBC.PhaseDateFIVE
+# Description: Estimated release date for Phase 5 content.
+TBC.PhaseDateFIVE = 2028-11-30
+
+# ---------------------------------------------------------------------------------------------------
+# END OF CONFIGURATION
+# ---------------------------------------------------------------------------------------------------

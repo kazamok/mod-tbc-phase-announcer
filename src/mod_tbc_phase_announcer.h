@@ -11,6 +11,13 @@
 // 전역 변수로 현재 페이즈를 저장
 extern uint32 g_currentPhase;
 
+// TBC 콘텐츠 페이즈별 예상 오픈 날짜
+extern std::string g_phaseDateOne;
+extern std::string g_phaseDateTwo;
+extern std::string g_phaseDateThree;
+extern std::string g_phaseDateFour;
+extern std::string g_phaseDateFive;
+
 // TBC 콘텐츠 페이즈 안내 메시지
 static const char* TBC_PHASE_MESSAGES[] =
 {

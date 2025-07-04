@@ -9,6 +9,11 @@
 
 // 전역 변수 정의
 uint32 g_currentPhase = 1;
+std::string g_phaseDateOne = "";
+std::string g_phaseDateTwo = "";
+std::string g_phaseDateThree = "";
+std::string g_phaseDateFour = "";
+std::string g_phaseDateFive = "";
 
 void ApplyPhaseChange(uint32 phase)
 {
@@ -39,7 +44,7 @@ void ApplyPhaseChange(uint32 phase)
             return;
     }
 
-    WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}", phase);
+    WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}, phase_date_one = '{}', phase_date_two = '{}', phase_date_three = '{}', phase_date_four = '{}', phase_date_five = '{}'", phase, g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
 
     // 모든 플레이어에게 페이즈 변경 안내 메시지 전송
     std::string msg = TBC_PHASE_MESSAGES[phase];
@@ -58,13 +63,25 @@ void mod_tbc_phase_announcer_world_script::OnAfterConfigLoad(bool reload)
         WorldDatabase.Execute(
             "CREATE TABLE IF NOT EXISTS `mod_tbc_phase_status` (\n"
             "  `phase` tinyint(3) unsigned NOT NULL DEFAULT '1',\n"
+            "  `phase_date_one` varchar(10) NOT NULL DEFAULT '미정',\n"
+            "  `phase_date_two` varchar(10) NOT NULL DEFAULT '미정',\n"
+            "  `phase_date_three` varchar(10) NOT NULL DEFAULT '미정',\n"
+            "  `phase_date_four` varchar(10) NOT NULL DEFAULT '미정',\n"
+            "  `phase_date_five` varchar(10) NOT NULL DEFAULT '미정',\n"
             "  PRIMARY KEY (`phase`)\n"
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
         );
-        // 기본 페이즈 값 삽입
-        WorldDatabase.Execute("INSERT IGNORE INTO `mod_tbc_phase_status` (`phase`) VALUES (1)");
+        // 기본 페이즈 값 및 날짜 삽입
+        WorldDatabase.Execute("INSERT IGNORE INTO `mod_tbc_phase_status` (`phase`, `phase_date_one`, `phase_date_two`, `phase_date_three`, `phase_date_four`, `phase_date_five`) VALUES (1, '{}', '{}', '{}', '{}', '{}')", g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
         LOG_INFO("server.world", "[TBC 페이즈 알리미] 테이블 생성 및 기본 데이터 추가가 완료되었습니다.");
     }
+
+    // 설정 파일에서 날짜 정보 읽기
+    g_phaseDateOne = sConfigMgr->GetOption<std::string>("TBC.PhaseDateONE", "미정");
+    g_phaseDateTwo = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTWO", "미정");
+    g_phaseDateThree = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTHREE", "미정");
+    g_phaseDateFour = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFOUR", "미정");
+    g_phaseDateFive = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFIVE", "미정");
 
     uint32 configPhase = sConfigMgr->GetOption<uint32>("TBC.ContentPhase", 1);
 
@@ -129,7 +146,17 @@ bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* playe
 
     if (g_currentPhase < requiredPhase)
     {
-        std::string formattedMessage = Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: {})", requiredPhase);
+        std::string expectedOpenDate = "미정";
+        switch (requiredPhase)
+        {
+            case 1: expectedOpenDate = g_phaseDateOne; break;
+            case 2: expectedOpenDate = g_phaseDateTwo; break;
+            case 3: expectedOpenDate = g_phaseDateThree; break;
+            case 4: expectedOpenDate = g_phaseDateFour; break;
+            case 5: expectedOpenDate = g_phaseDateFive; break;
+            default: break;
+        }
+        std::string formattedMessage = Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: {}, 오픈예정: {})", requiredPhase, expectedOpenDate);
         ChatHandler(player->GetSession()).SendSysMessage(formattedMessage);
         return false; // 입장 거부
     }
