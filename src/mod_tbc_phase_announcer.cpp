@@ -129,7 +129,7 @@ bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* playe
 
     if (g_currentPhase < requiredPhase)
     {
-        std::string formattedMessage = Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: %u)", requiredPhase);
+        std::string formattedMessage = Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: {})", requiredPhase);
         ChatHandler(player->GetSession()).SendSysMessage(formattedMessage);
         return false; // 입장 거부
     }
