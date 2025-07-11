@@ -40,23 +40,23 @@ TBC.ContentPhase = 1
 
 # TBC.PhaseDateONE
 # Description: Estimated release date for Phase 1 content.
-TBC.PhaseDateONE = 2027-07-04
+TBC.PhaseDateONE = 2025-07-01
 
 # TBC.PhaseDateTWO
 # Description: Estimated release date for Phase 2 content.
-TBC.PhaseDateTWO = 2027-11-08
+TBC.PhaseDateTWO = 2028-03-01
 
 # TBC.PhaseDateTHREE
 # Description: Estimated release date for Phase 3 content.
-TBC.PhaseDateTHREE = 2028-03-15
+TBC.PhaseDateTHREE = 2028-12-01
 
 # TBC.PhaseDateFOUR
 # Description: Estimated release date for Phase 4 content.
-TBC.PhaseDateFOUR = 2028-07-22
+TBC.PhaseDateFOUR = 2029-06-01
 
 # TBC.PhaseDateFIVE
 # Description: Estimated release date for Phase 5 content.
-TBC.PhaseDateFIVE = 2028-11-30
+TBC.PhaseDateFIVE = 2029-12-31
 
 # ---------------------------------------------------------------------------------------------------
 # END OF CONFIGURATION
