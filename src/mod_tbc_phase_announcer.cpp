@@ -1,3 +1,7 @@
+
+/*
+mod_tbc_phase_announcer.cpp */
+
 #include "mod_tbc_phase_announcer.h"
 #include "DatabaseEnv.h"
 #include "Map.h"
