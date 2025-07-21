@@ -1,3 +1,7 @@
+
+/*
+mod_tbc_phase_announcer.h */
+
 #ifndef MOD_TBC_PHASE_ANNOUNCER_H
 #define MOD_TBC_PHASE_ANNOUNCER_H
 
