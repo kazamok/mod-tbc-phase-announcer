@@ -1,63 +1,81 @@
-# ---------------------------------------------------------------------------------------------------
 #
-# TBC Phase Announcer Module Configuration
+###################################################################################################
+#     _______ ______  _____          _____  _    _   __   __
+#    |__   __|  ____ | ____|   /\   |  __ \| |  | |  \ \ / /
+#       | |  | |__  | (___    /  \  | |__) | |__| |   \ V /
+#       | |  |  __|  \___ \  / /\ \ |  ___/|  __  |    > <
+#       | |  | |____ ____) |/ ____ \| |    | |  | |   / . \
+#       |_|  |______|_____//_/    \_\_|    |_|  |_|  /_/ \_\
 #
-# This configuration file controls the behavior of the TBC Phase Announcer module.
-# It allows server administrators to manually manage the content phases of The Burning Crusade
-# expansion and inform players about the current and upcoming phases.
+#   TBC Phase Announcer Module
 #
-# ---------------------------------------------------------------------------------------------------
+###################################################################################################
 
 [mod-tbc-phase-announcer]
 
-# ---------------------------------------------------------------------------------------------------
-# CORE PHASE SETTINGS
-# These settings define the current active content phase of the server.
-# Changes to TBC.ContentPhase will trigger phase-specific content activations/deactivations
-# upon server startup or '.reload config' command.
-# ---------------------------------------------------------------------------------------------------
+###################################################################################################
+#
+#    TBC 단계별 알림 - 핵심 단계 설정
+#        Description: 이 설정은 서버의 현재 활성화된 콘텐츠 단계를 정의합니다.
+#                     TBC.ContentPhase 값을 변경하면 서버 시작 또는 '.reload config' 명령어 실행 시
+#                     해당 단계에 맞는 콘텐츠가 활성화/비활성화됩니다.
+#        Author:      AzerothCore Community
+#
+###################################################################################################
 
-# TBC.ContentPhase
-# Description: Sets the current active content phase for The Burning Crusade expansion.
-#              Valid values are integers from 1 to 5, corresponding to the TBC content phases.
-#              - Phase 1: Karazhan, Gruul's Lair, Magtheridon's Lair
-#              - Phase 2: Serpentshrine Cavern, Tempest Keep
-#              - Phase 3: Mount Hyjal, Black Temple
-#              - Phase 4: Zul'Aman
-#              - Phase 5: Sunwell Plateau
-# Default:     1
-# Example:     TBC.ContentPhase = 2
+#
+#    TBC.ContentPhase
+#        Description: 불타는 성전 확장팩의 현재 콘텐츠 단계를 설정합니다.
+#                     - 1단계: 카라잔, 그룰의 둥지, 마그테리돈의 둥지
+#                     - 2단계: 불뱀 제단, 폭풍우 요새
+#                     - 3단계: 하이잘 산, 검은 사원
+#                     - 4단계: 줄아만
+#                     - 5단계: 태양샘 고원
+#        Default:     1
+#
 TBC.ContentPhase = 1
 
-# ---------------------------------------------------------------------------------------------------
-# PHASE ANNOUNCEMENT DATES (INFORMATIONAL)
-# These settings are purely for informational purposes, used to display estimated
-# content release dates to players. They DO NOT automatically trigger phase changes.
-# Phase changes are controlled manually via the TBC.ContentPhase setting above.
-# Format:      YYYY-MM-DD (e.g., 2027-07-04)
-# Default:     "미정" (Undetermined) if not set or invalid.
-# ---------------------------------------------------------------------------------------------------
+###################################################################################################
+#
+#    TBC 단계별 알림 - 단계별 예상 날짜 (정보 제공용)
+#        Description: 이 설정은 플레이어에게 예상 콘텐츠 출시일을 표시하기 위한 정보 제공용입니다.
+#                     이 설정은 자동으로 단계 변경을 유발하지 않습니다.
+#                     단계 변경은 위의 TBC.ContentPhase 설정을 통해 수동으로 제어됩니다.
+#        Author:      AzerothCore Community
+#
+###################################################################################################
 
-# TBC.PhaseDateONE
-# Description: Estimated release date for Phase 1 content.
+#
+#    TBC.PhaseDateONE
+#        Description: 1단계 콘텐츠의 예상 출시일입니다. (형식: YYYY-MM-DD)
+#        Default:     "미정"
+#
 TBC.PhaseDateONE = 2025-07-01
 
-# TBC.PhaseDateTWO
-# Description: Estimated release date for Phase 2 content.
+#
+#    TBC.PhaseDateTWO
+#        Description: 2단계 콘텐츠의 예상 출시일입니다. (형식: YYYY-MM-DD)
+#        Default:     "미정"
+#
 TBC.PhaseDateTWO = 2028-03-01
 
-# TBC.PhaseDateTHREE
-# Description: Estimated release date for Phase 3 content.
+#
+#    TBC.PhaseDateTHREE
+#        Description: 3단계 콘텐츠의 예상 출시일입니다. (형식: YYYY-MM-DD)
+#        Default:     "미정"
+#
 TBC.PhaseDateTHREE = 2028-12-01
 
-# TBC.PhaseDateFOUR
-# Description: Estimated release date for Phase 4 content.
+#
+#    TBC.PhaseDateFOUR
+#        Description: 4단계 콘텐츠의 예상 출시일입니다. (형식: YYYY-MM-DD)
+#        Default:     "미정"
+#
 TBC.PhaseDateFOUR = 2029-06-01
 
-# TBC.PhaseDateFIVE
-# Description: Estimated release date for Phase 5 content.
+#
+#    TBC.PhaseDateFIVE
+#        Description: 5단계 콘텐츠의 예상 출시일입니다. (형식: YYYY-MM-DD)
+#        Default:     "미정"
+#
 TBC.PhaseDateFIVE = 2029-12-31
-
-# ---------------------------------------------------------------------------------------------------
-# END OF CONFIGURATION
-# ---------------------------------------------------------------------------------------------------
