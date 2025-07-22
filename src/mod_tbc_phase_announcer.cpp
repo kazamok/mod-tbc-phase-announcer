@@ -59,26 +59,7 @@ void ApplyPhaseChange(uint32 phase)
 
 void mod_tbc_phase_announcer_world_script::OnAfterConfigLoad(bool reload)
 {
-    // 테이블 존재 여부 확인 및 생성
-    QueryResult checkTable = WorldDatabase.Query("SHOW TABLES LIKE 'mod_tbc_phase_status'");
-    if (!checkTable)
-    {
-        LOG_INFO("server.world", "[TBC 페이즈 알리미] mod_tbc_phase_status 테이블을 생성합니다...");
-        WorldDatabase.Execute(
-            "CREATE TABLE IF NOT EXISTS `mod_tbc_phase_status` (\n"
-            "  `phase` tinyint(3) unsigned NOT NULL DEFAULT '1',\n"
-            "  `phase_date_one` varchar(10) NOT NULL DEFAULT '미정',\n"
-            "  `phase_date_two` varchar(10) NOT NULL DEFAULT '미정',\n"
-            "  `phase_date_three` varchar(10) NOT NULL DEFAULT '미정',\n"
-            "  `phase_date_four` varchar(10) NOT NULL DEFAULT '미정',\n"
-            "  `phase_date_five` varchar(10) NOT NULL DEFAULT '미정',\n"
-            "  PRIMARY KEY (`phase`)\n"
-            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
-        );
-        // 기본 페이즈 값 및 날짜 삽입
-        WorldDatabase.Execute("INSERT IGNORE INTO `mod_tbc_phase_status` (`phase`, `phase_date_one`, `phase_date_two`, `phase_date_three`, `phase_date_four`, `phase_date_five`) VALUES (1, '{}', '{}', '{}', '{}', '{}')", g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
-        LOG_INFO("server.world", "[TBC 페이즈 알리미] 테이블 생성 및 기본 데이터 추가가 완료되었습니다.");
-    }
+    
 
     // 설정 파일에서 날짜 정보 읽기
     g_phaseDateOne = sConfigMgr->GetOption<std::string>("TBC.PhaseDateONE", "미정");
