@@ -19,7 +19,7 @@
 #        Description: 이 설정은 서버의 현재 활성화된 콘텐츠 단계를 정의합니다.
 #                     TBC.ContentPhase 값을 변경하면 서버 시작 또는 '.reload config' 명령어 실행 시
 #                     해당 단계에 맞는 콘텐츠가 활성화/비활성화됩니다.
-#        Author:      AzerothCore Community
+#        Author:      Kazamok, AzerothCore Community
 #
 ###################################################################################################
 
@@ -41,7 +41,7 @@ TBC.ContentPhase = 1
 #        Description: 이 설정은 플레이어에게 예상 콘텐츠 출시일을 표시하기 위한 정보 제공용입니다.
 #                     이 설정은 자동으로 단계 변경을 유발하지 않습니다.
 #                     단계 변경은 위의 TBC.ContentPhase 설정을 통해 수동으로 제어됩니다.
-#        Author:      AzerothCore Community
+#        Author:      Kazamok, AzerothCore Community
 #
 ###################################################################################################
 
