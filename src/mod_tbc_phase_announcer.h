@@ -22,6 +22,8 @@ extern std::string g_phaseDateThree;
 extern std::string g_phaseDateFour;
 extern std::string g_phaseDateFive;
 
+void ApplyPhaseChange(uint32 phase);
+
 // TBC 콘텐츠 페이즈 안내 메시지
 static const char* TBC_PHASE_MESSAGES[] =
 {
@@ -48,9 +50,45 @@ class mod_tbc_phase_announcer_world_script : public WorldScript
 public:
     mod_tbc_phase_announcer_world_script() : WorldScript("mod_tbc_phase_announcer_world_script") { }
 
-    void OnAfterConfigLoad(bool reload) override;
-};
+    void OnAfterConfigLoad(bool reload) override
+    {
+        // 설정 파일에서 날짜 정보 읽기
+        g_phaseDateOne = sConfigMgr->GetOption<std::string>("TBC.PhaseDateONE", "미정");
+        g_phaseDateTwo = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTWO", "미정");
+        g_phaseDateThree = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTHREE", "미정");
+        g_phaseDateFour = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFOUR", "미정");
+        g_phaseDateFive = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFIVE", "미정");
 
-void ApplyPhaseChange(uint32 phase);
+        uint32 configPhase = sConfigMgr->GetOption<uint32>("TBC.ContentPhase", 1);
+
+        QueryResult result = WorldDatabase.Query("SELECT phase FROM mod_tbc_phase_status");
+        if (!result)
+        {
+            g_currentPhase = 1; // DB 오류 시 기본값으로 설정
+            LOG_ERROR("server.world", "[TBC 페이즈 알리미] `mod_tbc_phase_status` 테이블에서 페이즈를 읽을 수 없습니다. 기본 페이즈 1을 사용합니다.");
+            return;
+        }
+
+        uint32 dbPhase = (*result)[0].Get<uint32>();
+
+        if (configPhase != dbPhase)
+        {
+            LOG_INFO("server.world", "[TBC 페이즈 알리미] 설정 페이즈({})가 데이터베이스 페이즈({})와 다릅니다. 변경을 적용합니다...", configPhase, dbPhase);
+            ApplyPhaseChange(configPhase);
+        }
+        else
+        {
+            g_currentPhase = dbPhase;
+            if (reload)
+            {
+                LOG_INFO("server.world", "[TBC 페이즈 알리미] 설정이 다시 로드되었지만, 페이즈는 {}로 변경되지 않았습니다.", std::to_string(g_currentPhase));
+            }
+            else
+            {
+                LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {}로 초기화되었습니다.", std::to_string(g_currentPhase));
+            }
+        }
+    };
+};
 
 #endif // MOD_TBC_PHASE_ANNOUNCER_H

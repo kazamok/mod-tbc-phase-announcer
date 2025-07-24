@@ -1,7 +1,3 @@
-
-/*
-mod_tbc_phase_announcer.cpp */
-
 #include "mod_tbc_phase_announcer.h"
 #include "DatabaseEnv.h"
 #include "Map.h"
@@ -10,6 +6,8 @@ mod_tbc_phase_announcer.cpp */
 #include "World.h"
 #include "WorldPacket.h"
 #include "IWorld.h"
+#include <vector> // 추가
+#include <set>    // 추가
 
 // 전역 변수 정의
 uint32 g_currentPhase = 1;
@@ -18,6 +16,32 @@ std::string g_phaseDateTwo = "";
 std::string g_phaseDateThree = "";
 std::string g_phaseDateFour = "";
 std::string g_phaseDateFive = "";
+
+// 정의의 휘장 판매 NPC ID
+const std::set<uint32> g_badgeVendorNpcs = {
+    18525, // 게라스
+    25046, // 하우타
+    27667, // 안웨후
+    26089, // 케이리
+    25950, // 샤아니
+    27666  // 온투보
+};
+
+// 페이즈별 아이템 ID 목록
+const std::vector<uint32> g_phase123Items = {
+    32083, 32088, 32084, 32090, 29387, 29384, 32089, 29368, 29268, 29386, 29369, 29367, 29381, 29267, 29269, 29376, 29379, 29374, 29272, 29385, 29370, 29275, 29375, 30776, 30778, 30780, 30779, 30769, 30767, 30766, 30768, 30773, 30772, 30774, 30770, 30761, 30762, 30764, 30763, 32085, 32087, 29273, 29271, 29266, 32086, 29383, 29274, 29382, 29270, 23572, 29373, 29388, 29389, 29390
+};
+
+const std::vector<uint32> g_phase4Items = {
+    33557, 33538, 33522, 33583, 33513, 33516, 33334, 33518, 33509, 33296, 33514, 33585, 33520, 33207, 33552, 33577, 33974, 33535, 33484, 33507, 33579, 33588, 33539, 33386, 33279, 33532, 33527, 33559, 33325, 33291, 33973, 33331, 35321, 33584, 33531, 33580, 33517, 33505, 33324, 33519, 33970, 33965, 33587, 33524, 33510, 33593, 33504, 33503, 35324, 33810, 33529, 33287, 33537, 33972, 33192, 33540, 33222, 33534, 33530, 33528, 33280, 33304, 33523, 33586, 33832, 35326, 34050, 34163, 34162, 34049, 33566, 33502, 33589, 33333, 33578, 33536, 33508, 33501, 33506, 30183, 33515, 33512, 33582
+};
+
+const std::vector<uint32> g_phase5Items = {
+    34892, 34888, 34925, 34931, 34936, 34939, 34918, 34896, 34902, 34917, 34889, 34919, 34934, 34943, 34930, 34893, 34951, 34950, 34903, 34942, 34949, 34912, 34938, 34945, 34891, 34926, 34921, 34933, 34944, 34905, 34924, 34901, 34898, 34916, 34890, 34887, 34946, 34910, 34927, 34932, 34935, 34906, 34937, 34941, 34900, 34952, 34928, 34895, 34947, 34929, 34914, 34911, 34940, 34894, 34922, 34904, 34923, 32790, 32814, 32802, 32789, 32813, 32801, 32796, 32821, 32808, 32999, 32998, 32997, 32811, 32787, 32799, 32981, 32980, 32979, 32990, 32989, 32988, 32794, 32819, 32806, 32820, 32795, 32807, 32785, 32797, 32809, 32791, 32803, 32816, 32792, 32804, 32817, 32786, 32810, 32798, 32788, 32812, 32800, 32793, 32818, 32805, 32249, 32229, 32230, 32231, 32227, 32228
+};
+
+// 헬퍼 함수 선언
+void UpdateVendorItems(uint32 phase);
 
 void ApplyPhaseChange(uint32 phase)
 {
@@ -48,6 +72,9 @@ void ApplyPhaseChange(uint32 phase)
             return;
     }
 
+    // 정의의 휘장 판매 목록 업데이트
+    UpdateVendorItems(phase);
+
     WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}, phase_date_one = '{}', phase_date_two = '{}', phase_date_three = '{}', phase_date_four = '{}', phase_date_five = '{}'", phase, g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
 
     // 모든 플레이어에게 페이즈 변경 안내 메시지 전송
@@ -57,46 +84,58 @@ void ApplyPhaseChange(uint32 phase)
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {}가 성공적으로 적용되었습니다.", phase);
 }
 
-void mod_tbc_phase_announcer_world_script::OnAfterConfigLoad(bool reload)
+void UpdateVendorItems(uint32 phase)
 {
-    
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 중 (페이즈: {})...", phase);
 
-    // 설정 파일에서 날짜 정보 읽기
-    g_phaseDateOne = sConfigMgr->GetOption<std::string>("TBC.PhaseDateONE", "미정");
-    g_phaseDateTwo = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTWO", "미정");
-    g_phaseDateThree = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTHREE", "미정");
-    g_phaseDateFour = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFOUR", "미정");
-    g_phaseDateFive = sConfigMgr->GetOption<std::string>("TBC.PhaseDateFIVE", "미정");
-
-    uint32 configPhase = sConfigMgr->GetOption<uint32>("TBC.ContentPhase", 1);
-
-    QueryResult result = WorldDatabase.Query("SELECT phase FROM mod_tbc_phase_status");
-    if (!result)
+    // 1. 모든 정의의 휘장 판매 NPC의 기존 아이템 삭제
+    for (uint32 npcEntry : g_badgeVendorNpcs)
     {
-        g_currentPhase = 1; // DB 오류 시 기본값으로 설정
-        LOG_ERROR("server.world", "[TBC 페이즈 알리미] `mod_tbc_phase_status` 테이블에서 페이즈를 읽을 수 없습니다. 기본 페이즈 1을 사용합니다.");
-        return;
+        WorldDatabase.Execute("DELETE FROM npc_vendor WHERE entry = {}", npcEntry);
     }
 
-    uint32 dbPhase = (*result)[0].Get<uint32>();
+    // 2. 현재 페이즈에 맞는 아이템 삽입
+    const std::vector<uint32>* itemsToInsert = nullptr;
+    std::set<uint32> npcsToUpdate; // NPC별로 아이템을 삽입하기 위한 셋
 
-    if (configPhase != dbPhase)
+    switch (phase)
     {
-        LOG_INFO("server.world", "[TBC 페이즈 알리미] 설정 페이즈({})가 데이터베이스 페이즈({})와 다릅니다. 변경을 적용합니다...", configPhase, dbPhase);
-        ApplyPhaseChange(configPhase);
+        case 1:
+        case 2:
+        case 3:
+            itemsToInsert = &g_phase123Items;
+            npcsToUpdate.insert(18525); // 게라스
+            break;
+        case 4:
+            itemsToInsert = &g_phase4Items;
+            npcsToUpdate.insert(18525); // 게라스
+            break;
+        case 5:
+            itemsToInsert = &g_phase5Items;
+            npcsToUpdate.insert(25046); // 하우타
+            npcsToUpdate.insert(27667); // 안웨후
+            npcsToUpdate.insert(26089); // 케이리
+            npcsToUpdate.insert(25950); // 샤아니
+            npcsToUpdate.insert(27666); // 온투보
+            break;
+        default:
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 판매 목록 업데이트 요청.", phase);
+            return;
     }
-    else
+
+    if (itemsToInsert)
     {
-        g_currentPhase = dbPhase;
-        if (reload)
+        for (uint32 npcEntry : npcsToUpdate)
         {
-            LOG_INFO("server.world", "[TBC 페이즈 알리미] 설정이 다시 로드되었지만, 페이즈는 {}로 변경되지 않았습니다.", std::to_string(g_currentPhase));
-        }
-        else
-        {
-            LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {}로 초기화되었습니다.", std::to_string(g_currentPhase));
+            for (uint32 itemId : *itemsToInsert)
+            {
+                // npc_vendor 테이블에 아이템 삽입 (maxcount, incrtime, ExtendedCost는 0으로 설정)
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", npcEntry, itemId);
+            }
         }
     }
+
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 완료 (페이즈: {}).", phase);
 }
 
 bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* player, uint32 mapId, float /*x*/, float /*y*/, float /*z*/, float /*orientation*/, uint32 /*options*/, Unit* /*target*/)
