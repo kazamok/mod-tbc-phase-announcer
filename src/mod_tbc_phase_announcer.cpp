@@ -36,8 +36,16 @@ const std::vector<uint32> g_phase4Items = {
     33557, 33538, 33522, 33583, 33513, 33516, 33334, 33518, 33509, 33296, 33514, 33585, 33520, 33207, 33552, 33577, 33974, 33535, 33484, 33507, 33579, 33588, 33539, 33386, 33279, 33532, 33527, 33559, 33325, 33291, 33973, 33331, 35321, 33584, 33531, 33580, 33517, 33505, 33324, 33519, 33970, 33965, 33587, 33524, 33510, 33593, 33504, 33503, 35324, 33810, 33529, 33287, 33537, 33972, 33192, 33540, 33222, 33534, 33530, 33528, 33280, 33304, 33523, 33586, 33832, 35326, 34050, 34163, 34162, 34049, 33566, 33502, 33589, 33333, 33578, 33536, 33508, 33501, 33506, 30183, 33515, 33512, 33582
 };
 
-const std::vector<uint32> g_phase5Items = {
-    34892, 34888, 34925, 34931, 34936, 34939, 34918, 34896, 34902, 34917, 34889, 34919, 34934, 34943, 34930, 34893, 34951, 34950, 34903, 34942, 34949, 34912, 34938, 34945, 34891, 34926, 34921, 34933, 34944, 34905, 34924, 34901, 34898, 34916, 34890, 34887, 34946, 34910, 34927, 34932, 34935, 34906, 34937, 34941, 34900, 34952, 34928, 34895, 34947, 34929, 34914, 34911, 34940, 34894, 34922, 34904, 34923, 32790, 32814, 32802, 32789, 32813, 32801, 32796, 32821, 32808, 32999, 32998, 32997, 32811, 32787, 32799, 32981, 32980, 32979, 32990, 32989, 32988, 32794, 32819, 32806, 32820, 32795, 32807, 32785, 32797, 32809, 32791, 32803, 32816, 32792, 32804, 32817, 32786, 32810, 32798, 32788, 32812, 32800, 32793, 32818, 32805, 32249, 32229, 32230, 32231, 32227, 32228
+const std::vector<uint32> g_phase5ItemsHautaAnwehu = {
+    34887, 34888, 34889, 34890, 34891, 34892, 34893, 34894, 34895, 34896, 34898, 34900, 34901, 34902, 34903, 34904, 34905, 34906, 34910, 34911, 34912, 34914, 34916, 34917, 34918, 34919, 34921, 34922, 34923, 34924, 34925, 34926, 34927, 34928, 34929, 34930, 34931, 34932, 34933, 34934, 34935, 34936, 34937, 34938, 34939, 34940, 34941, 34942, 34943, 34944, 34945, 34946, 34947, 34949, 34950, 34951, 34952
+};
+
+const std::vector<uint32> g_phase5ItemsKeiri = {
+    32785, 32786, 32787, 32788, 32789, 32790, 32791, 32792, 32793, 32794, 32795, 32796, 32797, 32798, 32799, 32800, 32801, 32802, 32803, 32804, 32805, 32806, 32807, 32808, 32809, 32810, 32811, 32812, 32813, 32814, 32816, 32817, 32818, 32819, 32820, 32821, 32979, 32980, 32981, 32988, 32989, 32990, 32997, 32998, 32999, 33811, 33812, 33813, 33876, 33877, 33878, 33879, 33880, 33881, 33882, 33883, 33884, 33885, 33886, 33887, 33888, 33889, 33890, 33891, 33892, 33893, 33894, 33895, 33896, 33897, 33898, 33899, 33900, 33901, 33902, 33903, 33904, 33905, 33906, 33907, 33908, 33909, 33910, 33911, 33912, 33913, 33914, 33915, 33916, 33917
+};
+
+const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
+    32227, 32228, 32229, 32230, 32231, 32249, 35238, 35239, 35240, 35241, 35242, 35243, 35244, 35245, 35246, 35247, 35248, 35249, 35250, 35251, 35252, 35253, 35254, 35255, 35256, 35257, 35258, 35259, 35260, 35261, 35262, 35263, 35264, 35265, 35266, 35267, 35268, 35269, 35270, 35271, 35322, 35323, 35325, 35766, 35767, 35768, 35769, 37504
 };
 
 // 헬퍼 함수 선언
@@ -89,50 +97,82 @@ void UpdateVendorItems(uint32 phase)
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 중 (페이즈: {})...", phase);
 
     // 1. 모든 정의의 휘장 판매 NPC의 기존 아이템 삭제
+    std::string npcList = "";
     for (uint32 npcEntry : g_badgeVendorNpcs)
     {
-        WorldDatabase.Execute("DELETE FROM npc_vendor WHERE entry = {}", npcEntry);
+        if (!npcList.empty())
+            npcList += ",";
+        npcList += std::to_string(npcEntry);
+    }
+    if (!npcList.empty())
+    {
+        WorldDatabase.Execute("DELETE FROM npc_vendor WHERE entry IN ({})", npcList);
+        LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 NPC들의 기존 아이템 삭제 완료.");
     }
 
-    // 2. 현재 페이즈에 맞는 아이템 삽입
-    const std::vector<uint32>* itemsToInsert = nullptr;
-    std::set<uint32> npcsToUpdate; // NPC별로 아이템을 삽입하기 위한 셋
+    // 2. 현재 페이즈에 맞는 아이템 및 NPC 목록 구성
+    std::vector<uint32> cumulativeItems;
+    std::set<uint32> cumulativeNpcs;
 
-    switch (phase)
+    // 현재 페이즈까지의 모든 아이템을 누적하여 추가
+    if (phase >= 1)
     {
-        case 1:
-        case 2:
-        case 3:
-            itemsToInsert = &g_phase123Items;
-            npcsToUpdate.insert(18525); // 게라스
-            break;
-        case 4:
-            itemsToInsert = &g_phase4Items;
-            npcsToUpdate.insert(18525); // 게라스
-            break;
-        case 5:
-            itemsToInsert = &g_phase5Items;
-            npcsToUpdate.insert(25046); // 하우타
-            npcsToUpdate.insert(27667); // 안웨후
-            npcsToUpdate.insert(26089); // 케이리
-            npcsToUpdate.insert(25950); // 샤아니
-            npcsToUpdate.insert(27666); // 온투보
-            break;
-        default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 판매 목록 업데이트 요청.", phase);
-            return;
+        cumulativeItems.insert(cumulativeItems.end(), g_phase123Items.begin(), g_phase123Items.end());
+        cumulativeNpcs.insert(18525); // 게라스 (1-4페이즈 기본 상인)
     }
-
-    if (itemsToInsert)
+    if (phase >= 4)
     {
-        for (uint32 npcEntry : npcsToUpdate)
+        cumulativeItems.insert(cumulativeItems.end(), g_phase4Items.begin(), g_phase4Items.end());
+    }
+    // 5페이즈 상인별 아이템 판매
+    if (phase >= 5)
+    {
+        // 하우타 (25046)
+        for (uint32 itemId : g_phase5ItemsHautaAnwehu)
         {
-            for (uint32 itemId : *itemsToInsert)
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
+        }
+        // 안웨후 (27667)
+        for (uint32 itemId : g_phase5ItemsHautaAnwehu)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
+        }
+        // 케이리 (26089)
+        for (uint32 itemId : g_phase5ItemsKeiri)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
+        }
+        // 샤아니 (25950)
+        for (uint32 itemId : g_phase5ItemsShaaniOntubo)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
+        }
+        // 온투보 (27666)
+        for (uint32 itemId : g_phase5ItemsShaaniOntubo)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
+        }
+    }
+    else if (phase < 5) // 5페이즈 미만일 때 5페이즈 상인들은 아이템을 판매하지 않음
+    {
+        // 5페이즈 상인들의 판매 목록을 비움 (이미 위에서 전체 삭제했지만 명시적으로)
+        // 이 부분은 사실상 필요 없지만, 로직의 명확성을 위해 남겨둠
+    }
+
+    // 3. 구성된 아이템 목록을 해당 NPC에 삽입
+    if (!cumulativeItems.empty())
+    {
+        for (uint32 npcEntry : cumulativeNpcs)
+        {
+            for (uint32 itemId : cumulativeItems)
             {
-                // npc_vendor 테이블에 아이템 삽입 (maxcount, incrtime, ExtendedCost는 0으로 설정)
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", npcEntry, itemId);
             }
         }
+    }
+    else
+    {
+        LOG_WARN("server.world", "[TBC 페이즈 알리미] 현재 페이즈({})에 삽입할 아이템이 없습니다.", phase);
     }
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 완료 (페이즈: {}).", phase);
