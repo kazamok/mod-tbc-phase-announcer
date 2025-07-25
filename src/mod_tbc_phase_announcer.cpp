@@ -1,3 +1,7 @@
+
+/* filename:
+mod_tbc_phase_announcer.cpp */
+
 #include "mod_tbc_phase_announcer.h"
 #include "DatabaseEnv.h"
 #include "Map.h"
@@ -8,6 +12,8 @@
 #include "IWorld.h"
 #include <vector> // 추가
 #include <set>    // 추가
+#include <string> // 추가
+#include <sstream> // 추가
 
 // 전역 변수 정의
 uint32 g_currentPhase = 1;
@@ -36,12 +42,33 @@ const std::vector<uint32> g_phase4Items = {
     33557, 33538, 33522, 33583, 33513, 33516, 33334, 33518, 33509, 33296, 33514, 33585, 33520, 33207, 33552, 33577, 33974, 33535, 33484, 33507, 33579, 33588, 33539, 33386, 33279, 33532, 33527, 33559, 33325, 33291, 33973, 33331, 35321, 33584, 33531, 33580, 33517, 33505, 33324, 33519, 33970, 33965, 33587, 33524, 33510, 33593, 33504, 33503, 35324, 33810, 33529, 33287, 33537, 33972, 33192, 33540, 33222, 33534, 33530, 33528, 33280, 33304, 33523, 33586, 33832, 35326, 34050, 34163, 34162, 34049, 33566, 33502, 33589, 33333, 33578, 33536, 33508, 33501, 33506, 30183, 33515, 33512, 33582
 };
 
-const std::vector<uint32> g_phase5Items = {
-    34892, 34888, 34925, 34931, 34936, 34939, 34918, 34896, 34902, 34917, 34889, 34919, 34934, 34943, 34930, 34893, 34951, 34950, 34903, 34942, 34949, 34912, 34938, 34945, 34891, 34926, 34921, 34933, 34944, 34905, 34924, 34901, 34898, 34916, 34890, 34887, 34946, 34910, 34927, 34932, 34935, 34906, 34937, 34941, 34900, 34952, 34928, 34895, 34947, 34929, 34914, 34911, 34940, 34894, 34922, 34904, 34923, 32790, 32814, 32802, 32789, 32813, 32801, 32796, 32821, 32808, 32999, 32998, 32997, 32811, 32787, 32799, 32981, 32980, 32979, 32990, 32989, 32988, 32794, 32819, 32806, 32820, 32795, 32807, 32785, 32797, 32809, 32791, 32803, 32816, 32792, 32804, 32817, 32786, 32810, 32798, 32788, 32812, 32800, 32793, 32818, 32805, 32249, 32229, 32230, 32231, 32227, 32228
+const std::vector<uint32> g_phase5Items_Hauta_Anwehu = {
+    34892, 34888, 34925, 34931, 34936, 34939, 34918, 34896, 34902, 34917, 34889, 34919, 34934, 34943, 34930, 34893, 34951, 34950, 34903, 34942, 34949, 34912, 34938, 34945, 34891, 34926, 34921, 34933, 34944, 34905, 34924, 34901, 34898, 34916, 34890, 34887, 34946, 34910, 34927, 34932, 34935, 34906, 34937, 34941, 34900, 34952, 34928, 34895, 34947, 34929, 34914, 34911, 34940, 34894, 34922, 34904, 34923
+};
+
+const std::vector<uint32> g_phase5Items_Kayri = {
+    32790, 32814, 32802, 32789, 32813, 32801, 32796, 32821, 32808, 32999, 32998, 32997, 32811, 32787, 32799, 32981, 32980, 32979, 32990, 32989, 32988, 32794, 32819, 32806, 32820, 32795, 32807, 32785, 32797, 32809, 32791, 32803, 32816, 32792, 32804, 32817, 32786, 32810, 32798, 32788, 32812, 32800, 32793, 32818, 32805
+};
+
+const std::vector<uint32> g_phase5Items_Shaani_Ontuvo = {
+    32249, 32229, 32230, 32231, 32227, 32228
+};
+
+// 페이즈별 NPC ID 목록
+const std::vector<uint32> g_phase2_Npcs = { 19431, 21978, 19684 };
+const std::vector<uint32> g_phase3_Npcs = { 21700, 18302, 18422 };
+const std::vector<uint32> g_phase4_Npcs = { 22931, 23113, 23115, 23432 };
+const std::vector<uint32> g_phase5_Npcs = {
+    37541,37539,37538,27059,25003,25031,25001,25002,24999,25030,25027,25028,25047,24966,24960,29341,
+    37523,37527,25170,25175,24994,26253,25236,25059,24938,25115,24965,25108,24967,25046,25069,25061,25088,25037,25043,25112,25163,25032,24972,25057,25133,24813,25035,25034,25144,37509,37512,37211,25164,
+    24979,25087,24978,25063,24976,25161,
+    37542,37552,37205,25174,25169,25060,25073,26092,26560,26091,25977,26090,25039,26089,25976,25162,25036,24975,25950,25045,25049,25084,6491,30481,25225,37707,
+    19202,19216,19475,24938,25134,25135,25136,25137,25138,25140,25141,25142,25143,25153,25155,25167,25885
 };
 
 // 헬퍼 함수 선언
 void UpdateVendorItems(uint32 phase);
+void UpdateNpcVisibility(uint32 phase);
 
 void ApplyPhaseChange(uint32 phase)
 {
@@ -74,6 +101,8 @@ void ApplyPhaseChange(uint32 phase)
 
     // 정의의 휘장 판매 목록 업데이트
     UpdateVendorItems(phase);
+    // NPC 가시성 업데이트
+    UpdateNpcVisibility(phase);
 
     WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}, phase_date_one = '{}', phase_date_two = '{}', phase_date_three = '{}', phase_date_four = '{}', phase_date_five = '{}'", phase, g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
 
@@ -94,48 +123,83 @@ void UpdateVendorItems(uint32 phase)
         WorldDatabase.Execute("DELETE FROM npc_vendor WHERE entry = {}", npcEntry);
     }
 
-    // 2. 현재 페이즈에 맞는 아이템 삽입
-    const std::vector<uint32>* itemsToInsert = nullptr;
-    std::set<uint32> npcsToUpdate; // NPC별로 아이템을 삽입하기 위한 셋
-
-    switch (phase)
+    // 2. 현재 페이즈 및 이전 페이즈에 맞는 아이템 삽입
+    if (phase >= 1)
     {
-        case 1:
-        case 2:
-        case 3:
-            itemsToInsert = &g_phase123Items;
-            npcsToUpdate.insert(18525); // 게라스
-            break;
-        case 4:
-            itemsToInsert = &g_phase4Items;
-            npcsToUpdate.insert(18525); // 게라스
-            break;
-        case 5:
-            itemsToInsert = &g_phase5Items;
-            npcsToUpdate.insert(25046); // 하우타
-            npcsToUpdate.insert(27667); // 안웨후
-            npcsToUpdate.insert(26089); // 케이리
-            npcsToUpdate.insert(25950); // 샤아니
-            npcsToUpdate.insert(27666); // 온투보
-            break;
-        default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 판매 목록 업데이트 요청.", phase);
-            return;
-    }
-
-    if (itemsToInsert)
-    {
-        for (uint32 npcEntry : npcsToUpdate)
+        for (uint32 itemId : g_phase123Items)
         {
-            for (uint32 itemId : *itemsToInsert)
-            {
-                // npc_vendor 테이블에 아이템 삽입 (maxcount, incrtime, ExtendedCost는 0으로 설정)
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", npcEntry, itemId);
-            }
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 18525, itemId);
+        }
+    }
+    if (phase >= 4)
+    {
+        for (uint32 itemId : g_phase4Items)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 18525, itemId);
+        }
+    }
+    if (phase >= 5)
+    {
+        for (uint32 itemId : g_phase5Items_Hauta_Anwehu)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
+        }
+        for (uint32 itemId : g_phase5Items_Kayri)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
+        }
+        for (uint32 itemId : g_phase5Items_Shaani_Ontuvo)
+        {
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
+            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
         }
     }
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 완료 (페이즈: {}).", phase);
+}
+
+void UpdateNpcVisibility(uint32 phase)
+{
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] NPC 가시성 업데이트 중 (페이즈: {})...", phase);
+
+    // Helper lambda to convert vector of IDs to a comma-separated string
+    auto IdsToString = [](const std::vector<uint32>& ids) -> std::string {
+        if (ids.empty()) {
+            return "";
+        }
+        std::stringstream ss;
+        for (size_t i = 0; i < ids.size(); ++i) {
+            ss << ids[i] << (i == ids.size() - 1 ? "" : ",");
+        }
+        return ss.str();
+    };
+
+    // Phase 2 NPCs
+    std::string p2_npcs = IdsToString(g_phase2_Npcs);
+    if (!p2_npcs.empty()) {
+        WorldDatabase.Execute("UPDATE creature SET spawnMask = {} WHERE id IN ({})", (phase >= 2 ? 1 : 0), p2_npcs);
+    }
+
+    // Phase 3 NPCs
+    std::string p3_npcs = IdsToString(g_phase3_Npcs);
+    if (!p3_npcs.empty()) {
+        WorldDatabase.Execute("UPDATE creature SET spawnMask = {} WHERE id IN ({})", (phase >= 3 ? 1 : 0), p3_npcs);
+    }
+
+    // Phase 4 NPCs
+    std::string p4_npcs = IdsToString(g_phase4_Npcs);
+    if (!p4_npcs.empty()) {
+        WorldDatabase.Execute("UPDATE creature SET spawnMask = {} WHERE id IN ({})", (phase >= 4 ? 1 : 0), p4_npcs);
+    }
+
+    // Phase 5 NPCs
+    std::string p5_npcs = IdsToString(g_phase5_Npcs);
+    if (!p5_npcs.empty()) {
+        WorldDatabase.Execute("UPDATE creature SET spawnMask = {} WHERE id IN ({})", (phase >= 5 ? 1 : 0), p5_npcs);
+    }
+
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] NPC 가시성 업데이트 완료 (페이즈: {}).", phase);
 }
 
 bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* player, uint32 mapId, float /*x*/, float /*y*/, float /*z*/, float /*orientation*/, uint32 /*options*/, Unit* /*target*/)
