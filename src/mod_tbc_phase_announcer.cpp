@@ -111,66 +111,69 @@ void UpdateVendorItems(uint32 phase)
     }
 
     // 2. 현재 페이즈에 맞는 아이템 및 NPC 목록 구성
-    std::vector<uint32> cumulativeItems;
-    std::set<uint32> cumulativeNpcs;
+    std::vector<uint32> itemsToInsert;
+    std::set<uint32> npcsToUpdate;
 
-    // 현재 페이즈까지의 모든 아이템을 누적하여 추가
-    if (phase >= 1)
+    // 게라스는 1-4페이즈 기본 상인
+    npcsToUpdate.insert(18525);
+
+    switch (phase)
     {
-        cumulativeItems.insert(cumulativeItems.end(), g_phase123Items.begin(), g_phase123Items.end());
-        cumulativeNpcs.insert(18525); // 게라스 (1-4페이즈 기본 상인)
-    }
-    if (phase >= 4)
-    {
-        cumulativeItems.insert(cumulativeItems.end(), g_phase4Items.begin(), g_phase4Items.end());
-    }
-    // 5페이즈 상인별 아이템 판매
-    if (phase >= 5)
-    {
-        // 하우타 (25046)
-        for (uint32 itemId : g_phase5ItemsHautaAnwehu)
-        {
-            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
-        }
-        // 안웨후 (27667)
-        for (uint32 itemId : g_phase5ItemsHautaAnwehu)
-        {
-            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
-        }
-        // 케이리 (26089)
-        for (uint32 itemId : g_phase5ItemsKeiri)
-        {
-            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
-        }
-        // 샤아니 (25950)
-        for (uint32 itemId : g_phase5ItemsShaaniOntubo)
-        {
-            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
-        }
-        // 온투보 (27666)
-        for (uint32 itemId : g_phase5ItemsShaaniOntubo)
-        {
-            WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
-        }
-    }
-    else if (phase < 5) // 5페이즈 미만일 때 5페이즈 상인들은 아이템을 판매하지 않음
-    {
-        // 5페이즈 상인들의 판매 목록을 비움 (이미 위에서 전체 삭제했지만 명시적으로)
-        // 이 부분은 사실상 필요 없지만, 로직의 명확성을 위해 남겨둠
+        case 1:
+            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
+            break;
+        case 2:
+        case 3: // 2, 3 페이즈는 1페이즈 아이템과 동일
+            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
+            break;
+        case 4: // 4 페이즈는 1-3 페이즈 아이템 + 4 페이즈 아이템
+            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
+            itemsToInsert.insert(itemsToInsert.end(), g_phase4Items.begin(), g_phase4Items.end());
+            break;
+        case 5: // 5 페이즈는 상인별로 아이템을 직접 삽입
+            // 하우타 (25046)
+            for (uint32 itemId : g_phase5ItemsHautaAnwehu)
+            {
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
+            }
+            // 안웨후 (27667)
+            for (uint32 itemId : g_phase5ItemsHautaAnwehu)
+            {
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
+            }
+            // 케이리 (26089)
+            for (uint32 itemId : g_phase5ItemsKeiri)
+            {
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
+            }
+            // 샤아니 (25950)
+            for (uint32 itemId : g_phase5ItemsShaaniOntubo)
+            {
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
+            }
+            // 온투보 (27666)
+            for (uint32 itemId : g_phase5ItemsShaaniOntubo)
+            {
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
+            }
+            break;
+        default:
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 아이템 설정입니다.", phase);
+            break;
     }
 
-    // 3. 구성된 아이템 목록을 해당 NPC에 삽입
-    if (!cumulativeItems.empty())
+    // 3. 구성된 아이템 목록을 해당 NPC에 삽입 (5페이즈가 아닐 경우에만 실행)
+    if (phase < 5 && !itemsToInsert.empty())
     {
-        for (uint32 npcEntry : cumulativeNpcs)
+        for (uint32 npcEntry : npcsToUpdate)
         {
-            for (uint32 itemId : cumulativeItems)
+            for (uint32 itemId : itemsToInsert)
             {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", npcEntry, itemId);
             }
         }
     }
-    else
+    else if (phase < 5 && itemsToInsert.empty())
     {
         LOG_WARN("server.world", "[TBC 페이즈 알리미] 현재 페이즈({})에 삽입할 아이템이 없습니다.", phase);
     }
