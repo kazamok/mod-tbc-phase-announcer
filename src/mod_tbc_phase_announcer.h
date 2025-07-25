@@ -1,5 +1,5 @@
 
-/* filename:
+/*
 mod_tbc_phase_announcer.h */
 
 #ifndef MOD_TBC_PHASE_ANNOUNCER_H
@@ -23,9 +23,6 @@ extern std::string g_phaseDateFour;
 extern std::string g_phaseDateFive;
 
 void ApplyPhaseChange(uint32 phase);
-void UpdateVendorItems(uint32 phase);
-
-void UpdateNpcVisibility(uint32 phase);
 
 // TBC 콘텐츠 페이즈 안내 메시지
 static const char* TBC_PHASE_MESSAGES[] =
@@ -82,8 +79,6 @@ public:
         else
         {
             g_currentPhase = dbPhase;
-            UpdateVendorItems(g_currentPhase); // 판매 목록 업데이트 추가
-            UpdateNpcVisibility(g_currentPhase); // NPC 가시성 업데이트 추가
             if (reload)
             {
                 LOG_INFO("server.world", "[TBC 페이즈 알리미] 설정이 다시 로드되었지만, 페이즈는 {}로 변경되지 않았습니다.", std::to_string(g_currentPhase));
