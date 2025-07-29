@@ -6,8 +6,8 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "IWorld.h"
-#include <vector> // 추가
-#include <set>    // 추가
+#include <vector>
+#include <set>
 
 // 전역 변수 정의
 uint32 g_currentPhase = 1;
@@ -16,6 +16,17 @@ std::string g_phaseDateTwo = "";
 std::string g_phaseDateThree = "";
 std::string g_phaseDateFour = "";
 std::string g_phaseDateFive = "";
+
+// 페이즈별 NPC 목록 정의
+const std::vector<uint32> g_phase2Npcs = { 19431, 21978, 19684 };
+const std::vector<uint32> g_phase3Npcs = { 21700, 18302, 18422 };
+const std::vector<uint32> g_phase4Npcs = { 22931, 23113, 23115, 23432 };
+const std::vector<uint32> g_phase5Npcs_Scourge = { 37541,37539,37538,27059,25003,25031,25001,25002,24999,25030,25027,25028,25047,24966,24960,29341 };
+const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 37523,37527,25170,25175,24994,26253,25236,25059,24938,25115,24965,25108,24967,25046,25069,25061,25088,25037,25043,25112,25163,25032,24972,25057,25133,24813,25035,25034,25144,37509,37512,37211,25164 };
+const std::vector<uint32> g_phase5Npcs_Dawnblade = { 24979,25087,24978,25063,24976,25161 };
+const std::vector<uint32> g_phase5Npcs_Misc = { 37542,37552,37205,25174,25169,25060,25073,26092,26560,26091,25977,26090,25039,26089,25976,25162,25036,24975,25950,25045,25049,25084,6491,30481,25225,37707 };
+const std::vector<uint32> g_phase5Npcs_Shattrath = { 19202,19216,19475,24938,25134,25135,25136,25137,25138,25140,25141,25142,25143,25153,25155,25167,25885 };
+
 
 // 정의의 휘장 판매 NPC ID
 const std::set<uint32> g_badgeVendorNpcs = {
@@ -51,9 +62,77 @@ const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
 // 헬퍼 함수 선언
 void UpdateVendorItems(uint32 phase);
 
+void CreateNpcPhaseMaskBackupTable()
+{
+    WorldDatabase.Execute("CREATE TABLE IF NOT EXISTS `mod_tbc_npc_phasemask_backup` (`guid` INT UNSIGNED NOT NULL PRIMARY KEY, `original_phasemask` INT UNSIGNED NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_npc_phasemask_backup` 테이블 확인/생성 완료.");
+}
+
+void UpdateNpcVisibility(uint32 phase)
+{
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] NPC 가시성 업데이트 중 (현재 페이즈: {})...", phase);
+
+    const std::vector<std::pair<uint32, const std::vector<uint32>&>> phaseNpcMap = {
+        {2, g_phase2Npcs},
+        {3, g_phase3Npcs},
+        {4, g_phase4Npcs},
+        {5, g_phase5Npcs_Scourge},
+        {5, g_phase5Npcs_ShatteredSun},
+        {5, g_phase5Npcs_Dawnblade},
+        {5, g_phase5Npcs_Misc},
+        {5, g_phase5Npcs_Shattrath}
+    };
+
+    for (const auto& pair : phaseNpcMap)
+    {
+        uint32 requiredPhase = pair.first;
+        const std::vector<uint32>& npcList = pair.second;
+
+        for (uint32 npcEntry : npcList)
+        {
+            QueryResult result = WorldDatabase.Query("SELECT guid, phaseMask FROM creature WHERE id1 = {}", npcEntry);
+            if (!result)
+            {
+                continue;
+            }
+
+            do
+            {
+                Field* fields = result->Fetch();
+                uint32 guid = fields[0].Get<uint32>();
+                uint32 originalPhaseMask = fields[1].Get<uint32>();
+
+                if (phase < requiredPhase) // NPC를 숨겨야 하는 경우
+                {
+                    QueryResult backupResult = WorldDatabase.Query("SELECT 1 FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                    if (!backupResult)
+                    {
+                        WorldDatabase.Execute("INSERT IGNORE INTO mod_tbc_npc_phasemask_backup (guid, original_phasemask) VALUES ({}, {})", guid, originalPhaseMask);
+                    }
+                    if (originalPhaseMask != 0)
+                    {
+                        WorldDatabase.Execute("UPDATE creature SET phaseMask = 0 WHERE guid = {}", guid);
+                    }
+                }
+                else // NPC를 다시 표시해야 하는 경우
+                {
+                    QueryResult backupResult = WorldDatabase.Query("SELECT original_phasemask FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                    if (backupResult)
+                    {
+                        uint32 backedUpPhaseMask = (*backupResult)[0].Get<uint32>();
+                        WorldDatabase.Execute("UPDATE creature SET phaseMask = {} WHERE guid = {}", backedUpPhaseMask, guid);
+                        WorldDatabase.Execute("DELETE FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                    }
+                }
+            } while (result->NextRow());
+        }
+    }
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] NPC 가시성 업데이트 완료.");
+}
+
+
 void ApplyPhaseChange(uint32 phase)
 {
-    // 이 함수가 페이즈 변경의 핵심 뼈대입니다.
     g_currentPhase = phase;
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {} 적용 중...", phase);
@@ -80,12 +159,11 @@ void ApplyPhaseChange(uint32 phase)
             return;
     }
 
-    // 정의의 휘장 판매 목록 업데이트
     UpdateVendorItems(phase);
+    UpdateNpcVisibility(phase); // NPC 가시성 업데이트 호출
 
     WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}, phase_date_one = '{}', phase_date_two = '{}', phase_date_three = '{}', phase_date_four = '{}', phase_date_five = '{}'", phase, g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
 
-    // 모든 플레이어에게 페이즈 변경 안내 메시지 전송
     std::string msg = TBC_PHASE_MESSAGES[phase];
     sWorldSessionMgr->SendServerMessage(SERVER_MSG_STRING, msg);
 
@@ -96,7 +174,6 @@ void UpdateVendorItems(uint32 phase)
 {
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 중 (페이즈: {})...", phase);
 
-    // 1. 모든 정의의 휘장 판매 NPC의 기존 아이템 삭제
     std::string npcList = "";
     for (uint32 npcEntry : g_badgeVendorNpcs)
     {
@@ -110,50 +187,35 @@ void UpdateVendorItems(uint32 phase)
         LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 NPC들의 기존 아이템 삭제 완료.");
     }
 
-    // 2. 현재 페이즈에 맞는 아이템 및 NPC 목록 구성
     std::vector<uint32> itemsToInsert;
     std::set<uint32> npcsToUpdate;
 
-    // 게라스는 1-4페이즈 기본 상인
     npcsToUpdate.insert(18525);
 
     switch (phase)
     {
         case 1:
-            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
-            break;
         case 2:
-        case 3: // 2, 3 페이즈는 1페이즈 아이템과 동일
+        case 3:
             itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
             break;
-        case 4: // 4 페이즈는 1-3 페이즈 아이템 + 4 페이즈 아이템
+        case 4:
             itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
             itemsToInsert.insert(itemsToInsert.end(), g_phase4Items.begin(), g_phase4Items.end());
             break;
-        case 5: // 5 페이즈는 상인별로 아이템을 직접 삽입
-            // 하우타 (25046)
+        case 5:
             for (uint32 itemId : g_phase5ItemsHautaAnwehu)
             {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
-            }
-            // 안웨후 (27667)
-            for (uint32 itemId : g_phase5ItemsHautaAnwehu)
-            {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
             }
-            // 케이리 (26089)
             for (uint32 itemId : g_phase5ItemsKeiri)
             {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
             }
-            // 샤아니 (25950)
             for (uint32 itemId : g_phase5ItemsShaaniOntubo)
             {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
-            }
-            // 온투보 (27666)
-            for (uint32 itemId : g_phase5ItemsShaaniOntubo)
-            {
                 WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
             }
             break;
@@ -162,7 +224,6 @@ void UpdateVendorItems(uint32 phase)
             break;
     }
 
-    // 3. 구성된 아이템 목록을 해당 NPC에 삽입 (5페이즈가 아닐 경우에만 실행)
     if (phase < 5 && !itemsToInsert.empty())
     {
         for (uint32 npcEntry : npcsToUpdate)
@@ -183,32 +244,14 @@ void UpdateVendorItems(uint32 phase)
 
 bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* player, uint32 mapId, float /*x*/, float /*y*/, float /*z*/, float /*orientation*/, uint32 /*options*/, Unit* /*target*/)
 {
-    // 각 페이즈별 인스턴스 Map ID
-    // 페이즈 1: 카라잔(532), 마그테리돈의 둥지(544), 그룰의 둥지(565)
-    // 페이즈 2: 불뱀 제단(548), 폭풍우 요새(550)
-    // 페이즈 3: 하이잘 정상(534), 검은 사원(564)
-    // 페이즈 4: 줄아만(568)
-    // 페이즈 5: 태양샘 고원(580)
-
     uint32 requiredPhase = 0;
     switch(mapId)
     {
-        case 548: // 불뱀 제단
-        case 550: // 폭풍우 요새
-            requiredPhase = 2;
-            break;
-        case 534: // 하이잘 정상
-        case 564: // 검은 사원
-            requiredPhase = 3;
-            break;
-        case 568: // 줄아만
-            requiredPhase = 4;
-            break;
-        case 580: // 태양샘 고원
-            requiredPhase = 5;
-            break;
-        default:
-            return true; // 1페이즈 또는 기타 인스턴스는 항상 허용
+        case 548: case 550: requiredPhase = 2; break;
+        case 534: case 564: requiredPhase = 3; break;
+        case 568: requiredPhase = 4; break;
+        case 580: requiredPhase = 5; break;
+        default: return true;
     }
 
     if (g_currentPhase < requiredPhase)
@@ -216,18 +259,15 @@ bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* playe
         std::string expectedOpenDate = "미정";
         switch (requiredPhase)
         {
-            case 1: expectedOpenDate = g_phaseDateOne; break;
             case 2: expectedOpenDate = g_phaseDateTwo; break;
             case 3: expectedOpenDate = g_phaseDateThree; break;
             case 4: expectedOpenDate = g_phaseDateFour; break;
             case 5: expectedOpenDate = g_phaseDateFive; break;
-            default: break;
         }
-        std::string formattedMessage = Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: {}, 오픈예정: {})", requiredPhase, expectedOpenDate);
-        ChatHandler(player->GetSession()).SendSysMessage(formattedMessage);
-        return false; // 입장 거부
+        ChatHandler(player->GetSession()).SendSysMessage(Acore::StringFormat("해당 인스턴스는 현재 서버에서 비활성화 상태입니다. (필요 페이즈: {}, 오픈예정: {})", requiredPhase, expectedOpenDate));
+        return false;
     }
-    return true; // 입장 허용
+    return true;
 }
 
 void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)

@@ -11,6 +11,8 @@ mod_tbc_phase_announcer.h */
 #include "Chat.h"
 #include "World.h"
 #include "WorldScript.h"
+#include <vector>
+#include <set>
 
 // 전역 변수로 현재 페이즈를 저장
 extern uint32 g_currentPhase;
@@ -22,7 +24,21 @@ extern std::string g_phaseDateThree;
 extern std::string g_phaseDateFour;
 extern std::string g_phaseDateFive;
 
+// 페이즈별 NPC 목록
+extern const std::vector<uint32> g_phase2Npcs;
+extern const std::vector<uint32> g_phase3Npcs;
+extern const std::vector<uint32> g_phase4Npcs;
+extern const std::vector<uint32> g_phase5Npcs_Scourge;
+extern const std::vector<uint32> g_phase5Npcs_ShatteredSun;
+extern const std::vector<uint32> g_phase5Npcs_Dawnblade;
+extern const std::vector<uint32> g_phase5Npcs_Misc;
+extern const std::vector<uint32> g_phase5Npcs_Shattrath;
+
+
 void ApplyPhaseChange(uint32 phase);
+void UpdateNpcVisibility(uint32 phase);
+void CreateNpcPhaseMaskBackupTable();
+
 
 // TBC 콘텐츠 페이즈 안내 메시지
 static const char* TBC_PHASE_MESSAGES[] =
@@ -49,6 +65,12 @@ class mod_tbc_phase_announcer_world_script : public WorldScript
 {
 public:
     mod_tbc_phase_announcer_world_script() : WorldScript("mod_tbc_phase_announcer_world_script") { }
+
+    void OnStartup() override
+    {
+        CreateNpcPhaseMaskBackupTable();
+        UpdateNpcVisibility(g_currentPhase);
+    }
 
     void OnAfterConfigLoad(bool reload) override
     {
