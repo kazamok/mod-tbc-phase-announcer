@@ -34,10 +34,20 @@ extern const std::vector<uint32> g_phase5Npcs_Dawnblade;
 extern const std::vector<uint32> g_phase5Npcs_Misc;
 extern const std::vector<uint32> g_phase5Npcs_Shattrath;
 
+// 페이즈별 오브젝트 목록
+extern const std::vector<uint32> g_phase5Objs;
+
+// 페이즈별 퀘스트 목록
+extern const std::vector<uint32> g_phase4Quests;
+
 
 void ApplyPhaseChange(uint32 phase);
 void UpdateNpcVisibility(uint32 phase);
 void CreateNpcSpawnMaskBackupTable();
+void UpdateGameObjectVisibility(uint32 phase);
+void CreateGameObjectSpawnMaskBackupTable();
+void UpdateQuestAvailability(uint32 phase);
+void CreateQuestSpecialFlagsBackupTable();
 
 
 // TBC 콘텐츠 페이즈 안내 메시지
@@ -69,7 +79,11 @@ public:
     void OnStartup() override
     {
         CreateNpcSpawnMaskBackupTable();
+        CreateGameObjectSpawnMaskBackupTable();
+        CreateQuestSpecialFlagsBackupTable();
         UpdateNpcVisibility(g_currentPhase);
+        UpdateGameObjectVisibility(g_currentPhase);
+        UpdateQuestAvailability(g_currentPhase);
     }
 
     void OnAfterConfigLoad(bool reload) override

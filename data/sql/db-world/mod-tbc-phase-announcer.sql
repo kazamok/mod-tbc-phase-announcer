@@ -14,3 +14,15 @@ CREATE TABLE IF NOT EXISTS `mod_tbc_npc_spawnmask_backup` (
 `guid` INT UNSIGNED NOT NULL PRIMARY KEY,
 `original_spawnmask` INT UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
+
+-- 오브젝트, 퀘스트
+CREATE TABLE IF NOT EXISTS `mod_tbc_gameobject_spawnmask_backup` (
+`guid` INT UNSIGNED NOT NULL PRIMARY KEY, 
+`original_spawnmask` INT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `mod_tbc_quest_specialflags_backup` (
+`id` INT UNSIGNED NOT NULL PRIMARY KEY, 
+`original_specialflags` INT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
