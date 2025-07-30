@@ -62,10 +62,10 @@ const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
 // 헬퍼 함수 선언
 void UpdateVendorItems(uint32 phase);
 
-void CreateNpcPhaseMaskBackupTable()
+void CreateNpcSpawnMaskBackupTable()
 {
-    WorldDatabase.Execute("CREATE TABLE IF NOT EXISTS `mod_tbc_npc_phasemask_backup` (`guid` INT UNSIGNED NOT NULL PRIMARY KEY, `original_phasemask` INT UNSIGNED NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-    LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_npc_phasemask_backup` 테이블 확인/생성 완료.");
+    WorldDatabase.Execute("CREATE TABLE IF NOT EXISTS `mod_tbc_npc_spawnmask_backup` (`guid` INT UNSIGNED NOT NULL PRIMARY KEY, `original_spawnmask` INT UNSIGNED NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_npc_spawnmask_backup` 테이블 확인/생성 완료.");
 }
 
 void UpdateNpcVisibility(uint32 phase)
@@ -90,7 +90,7 @@ void UpdateNpcVisibility(uint32 phase)
 
         for (uint32 npcEntry : npcList)
         {
-            QueryResult result = WorldDatabase.Query("SELECT guid, phaseMask FROM creature WHERE id1 = {}", npcEntry);
+            QueryResult result = WorldDatabase.Query("SELECT guid, spawnMask FROM creature WHERE id1 = {}", npcEntry);
             if (!result)
             {
                 continue;
@@ -100,28 +100,28 @@ void UpdateNpcVisibility(uint32 phase)
             {
                 Field* fields = result->Fetch();
                 uint32 guid = fields[0].Get<uint32>();
-                uint32 originalPhaseMask = fields[1].Get<uint32>();
+                uint32 originalSpawnMask = fields[1].Get<uint32>();
 
                 if (phase < requiredPhase) // NPC를 숨겨야 하는 경우
                 {
-                    QueryResult backupResult = WorldDatabase.Query("SELECT 1 FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                    QueryResult backupResult = WorldDatabase.Query("SELECT 1 FROM mod_tbc_npc_spawnmask_backup WHERE guid = {}", guid);
                     if (!backupResult)
                     {
-                        WorldDatabase.Execute("INSERT IGNORE INTO mod_tbc_npc_phasemask_backup (guid, original_phasemask) VALUES ({}, {})", guid, originalPhaseMask);
+                        WorldDatabase.Execute("INSERT IGNORE INTO mod_tbc_npc_spawnmask_backup (guid, original_spawnmask) VALUES ({}, {})", guid, originalSpawnMask);
                     }
-                    if (originalPhaseMask != 0)
+                    if (originalSpawnMask != 0)
                     {
-                        WorldDatabase.Execute("UPDATE creature SET phaseMask = 0 WHERE guid = {}", guid);
+                        WorldDatabase.Execute("UPDATE creature SET spawnMask = 0 WHERE guid = {}", guid);
                     }
                 }
                 else // NPC를 다시 표시해야 하는 경우
                 {
-                    QueryResult backupResult = WorldDatabase.Query("SELECT original_phasemask FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                    QueryResult backupResult = WorldDatabase.Query("SELECT original_spawnmask FROM mod_tbc_npc_spawnmask_backup WHERE guid = {}", guid);
                     if (backupResult)
                     {
-                        uint32 backedUpPhaseMask = (*backupResult)[0].Get<uint32>();
-                        WorldDatabase.Execute("UPDATE creature SET phaseMask = {} WHERE guid = {}", backedUpPhaseMask, guid);
-                        WorldDatabase.Execute("DELETE FROM mod_tbc_npc_phasemask_backup WHERE guid = {}", guid);
+                        uint32 backedUpSpawnMask = (*backupResult)[0].Get<uint32>();
+                        WorldDatabase.Execute("UPDATE creature SET spawnMask = {} WHERE guid = {}", backedUpSpawnMask, guid);
+                        WorldDatabase.Execute("DELETE FROM mod_tbc_npc_spawnmask_backup WHERE guid = {}", guid);
                     }
                 }
             } while (result->NextRow());

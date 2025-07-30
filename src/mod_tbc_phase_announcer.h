@@ -37,7 +37,7 @@ extern const std::vector<uint32> g_phase5Npcs_Shattrath;
 
 void ApplyPhaseChange(uint32 phase);
 void UpdateNpcVisibility(uint32 phase);
-void CreateNpcPhaseMaskBackupTable();
+void CreateNpcSpawnMaskBackupTable();
 
 
 // TBC 콘텐츠 페이즈 안내 메시지
@@ -68,7 +68,7 @@ public:
 
     void OnStartup() override
     {
-        CreateNpcPhaseMaskBackupTable();
+        CreateNpcSpawnMaskBackupTable();
         UpdateNpcVisibility(g_currentPhase);
     }
 
