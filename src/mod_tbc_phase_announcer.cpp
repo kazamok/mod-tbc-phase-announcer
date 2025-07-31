@@ -24,7 +24,7 @@ std::string g_phaseDateFive = "";
 std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase123;
 std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase4;
 
-// 페이즈별 NPC 목록 정의
+// 페이즈별 NPC 목록 정의 (추가 가능)
 const std::vector<uint32> g_phase2Npcs = { 19431, 21978, 19684 };
 const std::vector<uint32> g_phase3Npcs = { 21700, 18302, 18422 };
 const std::vector<uint32> g_phase4Npcs = { 23257,22987,22940,22931,23113,23115,23432,23362,23112,23253,22264,22271,23233,23347,23316,23300,23110,22266,22270,23428,23256,23334,23208,23392,23120,23473,23413,23335,};
