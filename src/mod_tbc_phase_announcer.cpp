@@ -21,7 +21,8 @@ std::string g_phaseDateFour = "";
 std::string g_phaseDateFive = "";
 
 // 게라스 판매 아이템 목록 (설정 파일에서 로드)
-std::vector<std::pair<uint32, uint32>> g_gerasVendorItems;
+std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase123;
+std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase4;
 
 // 페이즈별 NPC 목록 정의
 const std::vector<uint32> g_phase2Npcs = { 19431, 21978, 19684 };
@@ -58,7 +59,37 @@ const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
 };
 
 // 헬퍼 함수 선언
+std::vector<std::pair<uint32, uint32>> ParseVendorItemsConfig(const std::string& configString);
 void UpdateVendorItems(uint32 phase);
+
+// 헬퍼 함수 구현
+std::vector<std::pair<uint32, uint32>> ParseVendorItemsConfig(const std::string& configString)
+{
+    std::vector<std::pair<uint32, uint32>> items;
+    std::stringstream ss(configString);
+    std::string segment;
+
+    while (std::getline(ss, segment, ';'))
+    {
+        std::stringstream itemSs(segment);
+        std::string itemIdStr, extendedCostStr;
+
+        if (std::getline(itemSs, itemIdStr, ',') && std::getline(itemSs, extendedCostStr))
+        {
+            try
+            {
+                uint32 itemId = std::stoul(itemIdStr);
+                uint32 extendedCost = std::stoul(extendedCostStr);
+                items.push_back({itemId, extendedCost});
+            }
+            catch (const std::exception& e)
+            {
+                LOG_ERROR("server.world", "[TBC Phase Announcer] Failed to parse vendor item config segment '{}': {}", segment, e.what());
+            }
+        }
+    }
+    return items;
+}
 
 void CreateNpcSpawnMaskBackupTable()
 {
@@ -315,8 +346,11 @@ void UpdateVendorItems(uint32 phase)
         case 1:
         case 2:
         case 3:
+            itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase123.begin(), g_gerasVendorItemsPhase123.end());
+            break;
         case 4:
-            itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItems.begin(), g_gerasVendorItems.end());
+            itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase123.begin(), g_gerasVendorItemsPhase123.end());
+            itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase4.begin(), g_gerasVendorItemsPhase4.end());
             break;
         case 5:
             break;
@@ -391,11 +425,4 @@ void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)
     player->GetSession()->SendAreaTriggerMessage(message);
     ChatHandler(player->GetSession()).PSendSysMessage(message);
 }
-
-void Addmod_tbc_phase_announcerScripts()
-{
-    new mod_tbc_phase_announcer_player_script();
-    new mod_tbc_phase_announcer_world_script();
-}
-
 

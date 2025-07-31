@@ -39,6 +39,7 @@ extern const std::vector<uint32> g_phase5Objs;
 
 // 페이즈별 퀘스트 목록
 extern const std::vector<uint32> g_phase4Quests;
+extern const std::vector<uint32> g_phase5Quests;
 
 
 void ApplyPhaseChange(uint32 phase);
