@@ -6,8 +6,11 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "IWorld.h"
+#include "Config.h" // Added for config reading
 #include <vector>
 #include <set>
+#include <string>
+#include <sstream>
 
 // 전역 변수 정의
 uint32 g_currentPhase = 1;
@@ -16,6 +19,9 @@ std::string g_phaseDateTwo = "";
 std::string g_phaseDateThree = "";
 std::string g_phaseDateFour = "";
 std::string g_phaseDateFive = "";
+
+// 게라스 판매 아이템 목록 (설정 파일에서 로드)
+std::vector<std::pair<uint32, uint32>> g_gerasVendorItems;
 
 // 페이즈별 NPC 목록 정의
 const std::vector<uint32> g_phase2Npcs = { 19431, 21978, 19684 };
@@ -47,22 +53,6 @@ const std::set<uint32> g_badgeVendorNpcs = {
 };
 
 // 페이즈별 아이템 ID 목록
-const std::vector<uint32> g_phase123Items = {
-    32083, 32088, 32084, 32090, 29387, 29384, 32089, 29368, 29268, 29386, 29369, 29367, 29381, 29267, 29269, 29376, 29379, 29374, 29272, 29385, 29370, 29275, 29375, 30776, 30778, 30780, 30779, 30769, 30767, 30766, 30768, 30773, 30772, 30774, 30770, 30761, 30762, 30764, 30763, 32085, 32087, 29273, 29271, 29266, 32086, 29383, 29274, 29382, 29270, 23572, 29373, 29388, 29389, 29390
-};
-
-const std::vector<uint32> g_phase4Items = {
-    33557, 33538, 33522, 33583, 33513, 33516, 33334, 33518, 33509, 33296, 33514, 33585, 33520, 33207, 33552, 33577, 33974, 33535, 33484, 33507, 33579, 33588, 33539, 33386, 33279, 33532, 33527, 33559, 33325, 33291, 33973, 33331, 35321, 33584, 33531, 33580, 33517, 33505, 33324, 33519, 33970, 33965, 33587, 33524, 33510, 33593, 33504, 33503, 35324, 33810, 33529, 33287, 33537, 33972, 33192, 33540, 33222, 33534, 33530, 33528, 33280, 33304, 33523, 33586, 33832, 35326, 34050, 34163, 34162, 34049, 33566, 33502, 33589, 33333, 33578, 33536, 33508, 33501, 33506, 30183, 33515, 33512, 33582
-};
-
-const std::vector<uint32> g_phase5ItemsHautaAnwehu = {
-    34887, 34888, 34889, 34890, 34891, 34892, 34893, 34894, 34895, 34896, 34898, 34900, 34901, 34902, 34903, 34904, 34905, 34906, 34910, 34911, 34912, 34914, 34916, 34917, 34918, 34919, 34921, 34922, 34923, 34924, 34925, 34926, 34927, 34928, 34929, 34930, 34931, 34932, 34933, 34934, 34935, 34936, 34937, 34938, 34939, 34940, 34941, 34942, 34943, 34944, 34945, 34946, 34947, 34949, 34950, 34951, 34952
-};
-
-const std::vector<uint32> g_phase5ItemsKeiri = {
-    32785, 32786, 32787, 32788, 32789, 32790, 32791, 32792, 32793, 32794, 32795, 32796, 32797, 32798, 32799, 32800, 32801, 32802, 32803, 32804, 32805, 32806, 32807, 32808, 32809, 32810, 32811, 32812, 32813, 32814, 32816, 32817, 32818, 32819, 32820, 32821, 32979, 32980, 32981, 32988, 32989, 32990, 32997, 32998, 32999, 33811, 33812, 33813, 33876, 33877, 33878, 33879, 33880, 33881, 33882, 33883, 33884, 33885, 33886, 33887, 33888, 33889, 33890, 33891, 33892, 33893, 33894, 33895, 33896, 33897, 33898, 33899, 33900, 33901, 33902, 33903, 33904, 33905, 33906, 33907, 33908, 33909, 33910, 33911, 33912, 33913, 33914, 33915, 33916, 33917
-};
-
 const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
     32227, 32228, 32229, 32230, 32231, 32249, 35238, 35239, 35240, 35241, 35242, 35243, 35244, 35245, 35246, 35247, 35248, 35249, 35250, 35251, 35252, 35253, 35254, 35255, 35256, 35257, 35258, 35259, 35260, 35261, 35262, 35263, 35264, 35265, 35266, 35267, 35268, 35269, 35270, 35271, 35322, 35323, 35325, 35766, 35767, 35768, 35769, 37504
 };
@@ -315,7 +305,7 @@ void UpdateVendorItems(uint32 phase)
         LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 NPC들의 기존 아이템 삭제 완료.");
     }
 
-    std::vector<uint32> itemsToInsert;
+    std::vector<std::pair<uint32, uint32>> itemsToInsert;
     std::set<uint32> npcsToUpdate;
 
     npcsToUpdate.insert(18525);
@@ -325,27 +315,10 @@ void UpdateVendorItems(uint32 phase)
         case 1:
         case 2:
         case 3:
-            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
-            break;
         case 4:
-            itemsToInsert.insert(itemsToInsert.end(), g_phase123Items.begin(), g_phase123Items.end());
-            itemsToInsert.insert(itemsToInsert.end(), g_phase4Items.begin(), g_phase4Items.end());
+            itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItems.begin(), g_gerasVendorItems.end());
             break;
         case 5:
-            for (uint32 itemId : g_phase5ItemsHautaAnwehu)
-            {
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25046, itemId);
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27667, itemId);
-            }
-            for (uint32 itemId : g_phase5ItemsKeiri)
-            {
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 26089, itemId);
-            }
-            for (uint32 itemId : g_phase5ItemsShaaniOntubo)
-            {
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 25950, itemId);
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", 27666, itemId);
-            }
             break;
         default:
             LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 아이템 설정입니다.", phase);
@@ -356,9 +329,9 @@ void UpdateVendorItems(uint32 phase)
     {
         for (uint32 npcEntry : npcsToUpdate)
         {
-            for (uint32 itemId : itemsToInsert)
+            for (const auto& itemPair : itemsToInsert)
             {
-                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, 0)", npcEntry, itemId);
+                WorldDatabase.Execute("INSERT INTO npc_vendor (entry, item, maxcount, incrtime, ExtendedCost) VALUES ({}, {}, 0, 0, {})", npcEntry, itemPair.first, itemPair.second);
             }
         }
     }
@@ -372,13 +345,17 @@ void UpdateVendorItems(uint32 phase)
 
 bool mod_tbc_phase_announcer_player_script::OnPlayerBeforeTeleport(Player* player, uint32 mapId, float /*x*/, float /*y*/, float /*z*/, float /*orientation*/, uint32 /*options*/, Unit* /*target*/)
 {
+    // GM 계정은 페이즈 제한을 무시
+    if (player->IsGameMaster())
+        return true;
+
     uint32 requiredPhase = 0;
     switch(mapId)
     {
         case 548: case 550: requiredPhase = 2; break;
         case 534: case 564: requiredPhase = 3; break;
         case 568: requiredPhase = 4; break;
-        case 580: requiredPhase = 5; break;
+        case 580: case 585: requiredPhase = 5; break;
         default: return true;
     }
 
@@ -420,3 +397,5 @@ void Addmod_tbc_phase_announcerScripts()
     new mod_tbc_phase_announcer_player_script();
     new mod_tbc_phase_announcer_world_script();
 }
+
+
