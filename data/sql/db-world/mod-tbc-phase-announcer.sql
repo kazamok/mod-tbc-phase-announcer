@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS `mod_tbc_gameobject_spawnmask_backup` (
 `original_spawnmask` INT UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `mod_tbc_quest_specialflags_backup` (
+CREATE TABLE IF NOT EXISTS `mod_tbc_quest_minlevel_backup` (
 `id` INT UNSIGNED NOT NULL PRIMARY KEY, 
-`original_specialflags` INT UNSIGNED NOT NULL
+`original_minlevel` INT UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

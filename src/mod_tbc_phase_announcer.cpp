@@ -87,10 +87,10 @@ void CreateGameObjectSpawnMaskBackupTable()
     LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_gameobject_spawnmask_backup` 테이블 확인/생성 완료.");
 }
 
-void CreateQuestSpecialFlagsBackupTable()
+void CreateQuestMinLevelBackupTable()
 {
-    WorldDatabase.Execute("CREATE TABLE IF NOT EXISTS `mod_tbc_quest_specialflags_backup` (`id` INT UNSIGNED NOT NULL PRIMARY KEY, `original_specialflags` INT UNSIGNED NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-    LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_quest_specialflags_backup` 테이블 확인/생성 완료.");
+    WorldDatabase.Execute("CREATE TABLE IF NOT EXISTS `mod_tbc_quest_minlevel_backup` (`id` INT UNSIGNED NOT NULL PRIMARY KEY, `original_minlevel` INT UNSIGNED NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    LOG_INFO("server.world", "[TBC 페이즈 알리미] `mod_tbc_quest_minlevel_backup` 테이블 확인/생성 완료.");
 }
 
 void UpdateNpcVisibility(uint32 phase)
@@ -214,7 +214,7 @@ void UpdateQuestAvailability(uint32 phase)
 {
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 퀘스트 가용성 업데이트 중 (현재 페이즈: {})...", phase);
 
-    const uint32 QUEST_SPECIAL_FLAGS_UNAVAILABLE = 1; // 퀘스트를 받을 수 없게 만드는 플래그
+    const uint32 UNAVAILABLE_LEVEL = 99;
 
     const std::vector<std::pair<uint32, const std::vector<uint32>&>> phaseQuestMap = {
         {4, g_phase4Quests}
@@ -227,35 +227,33 @@ void UpdateQuestAvailability(uint32 phase)
 
         for (uint32 questId : questList)
         {
-            QueryResult result = WorldDatabase.Query("SELECT SpecialFlags FROM quest_template WHERE id = {}", questId);
+            QueryResult result = WorldDatabase.Query("SELECT MinLevel FROM quest_template WHERE id = {}", questId);
             if (!result)
             {
                 continue;
             }
 
-            uint32 originalSpecialFlags = (*result)[0].Get<uint32>();
+            uint32 originalMinLevel = (*result)[0].Get<uint32>();
 
             if (phase < requiredPhase) // 퀘스트를 비활성화해야 하는 경우
             {
-                QueryResult backupResult = WorldDatabase.Query("SELECT 1 FROM mod_tbc_quest_specialflags_backup WHERE id = {}", questId);
+                QueryResult backupResult = WorldDatabase.Query("SELECT 1 FROM mod_tbc_quest_minlevel_backup WHERE id = {}", questId);
                 if (!backupResult)
-                {
-                    WorldDatabase.Execute("INSERT IGNORE INTO mod_tbc_quest_specialflags_backup (id, original_specialflags) VALUES ({}, {})", questId, originalSpecialFlags);
+                {                    WorldDatabase.Execute("INSERT IGNORE INTO mod_tbc_quest_minlevel_backup (id, original_minlevel) VALUES ({}, {})", questId, originalMinLevel);
                 }
-                // 이미 비활성화 플래그가 없으면 추가
-                if (!(originalSpecialFlags & QUEST_SPECIAL_FLAGS_UNAVAILABLE))
+                if (originalMinLevel != UNAVAILABLE_LEVEL)
                 {
-                    WorldDatabase.Execute("UPDATE quest_template SET SpecialFlags = {} WHERE id = {}", originalSpecialFlags | QUEST_SPECIAL_FLAGS_UNAVAILABLE, questId);
+                    WorldDatabase.Execute("UPDATE quest_template SET MinLevel = {} WHERE id = {}", UNAVAILABLE_LEVEL, questId);
                 }
             }
             else // 퀘스트를 다시 활성화해야 하는 경우
             {
-                QueryResult backupResult = WorldDatabase.Query("SELECT original_specialflags FROM mod_tbc_quest_specialflags_backup WHERE id = {}", questId);
+                QueryResult backupResult = WorldDatabase.Query("SELECT original_minlevel FROM mod_tbc_quest_minlevel_backup WHERE id = {}", questId);
                 if (backupResult)
                 {
-                    uint32 backedUpSpecialFlags = (*backupResult)[0].Get<uint32>();
-                    WorldDatabase.Execute("UPDATE quest_template SET SpecialFlags = {} WHERE id = {}", backedUpSpecialFlags, questId);
-                    WorldDatabase.Execute("DELETE FROM mod_tbc_quest_specialflags_backup WHERE id = {}", questId);
+                    uint32 backedUpMinLevel = (*backupResult)[0].Get<uint32>();
+                    WorldDatabase.Execute("UPDATE quest_template SET MinLevel = {} WHERE id = {}", backedUpMinLevel, questId);
+                    WorldDatabase.Execute("DELETE FROM mod_tbc_quest_minlevel_backup WHERE id = {}", questId);
                 }
             }
         }

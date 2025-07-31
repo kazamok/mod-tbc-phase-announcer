@@ -47,7 +47,7 @@ void CreateNpcSpawnMaskBackupTable();
 void UpdateGameObjectVisibility(uint32 phase);
 void CreateGameObjectSpawnMaskBackupTable();
 void UpdateQuestAvailability(uint32 phase);
-void CreateQuestSpecialFlagsBackupTable();
+void CreateQuestMinLevelBackupTable();
 
 
 // TBC 콘텐츠 페이즈 안내 메시지
@@ -80,7 +80,7 @@ public:
     {
         CreateNpcSpawnMaskBackupTable();
         CreateGameObjectSpawnMaskBackupTable();
-        CreateQuestSpecialFlagsBackupTable();
+        CreateQuestMinLevelBackupTable();
         UpdateNpcVisibility(g_currentPhase);
         UpdateGameObjectVisibility(g_currentPhase);
         UpdateQuestAvailability(g_currentPhase);
