@@ -302,18 +302,18 @@ void ApplyPhaseChange(uint32 phase)
             LOG_INFO("server.world", "[TBC 페이즈 알리미] 5페이즈 컨텐츠 활성화.");
             break;
         default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈를 적용하려 했습니다: {}.", phase);
-            return;
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})를 적용합니다. 모든 페이즈 컨텐츠를 비활성화합니다.", phase);
+            break;
     }
 
     UpdateVendorItems(phase);
     UpdateNpcVisibility(phase);
-    UpdateGameObjectVisibility(phase); // 게임오브젝트 가시성 업데이트 호출
-    UpdateQuestAvailability(phase); // 퀘스트 가용성 업데이트 호출
+    UpdateGameObjectVisibility(phase);
+    UpdateQuestAvailability(phase);
 
     WorldDatabase.Execute("UPDATE mod_tbc_phase_status SET phase = {}, phase_date_one = '{}', phase_date_two = '{}', phase_date_three = '{}', phase_date_four = '{}', phase_date_five = '{}'", phase, g_phaseDateOne, g_phaseDateTwo, g_phaseDateThree, g_phaseDateFour, g_phaseDateFive);
 
-    std::string msg = TBC_PHASE_MESSAGES[phase];
+    std::string msg = (phase > 0 && phase < MAX_TBC_PHASE_MESSAGE) ? TBC_PHASE_MESSAGES[phase] : TBC_PHASE_MESSAGES[0];
     sWorldSessionMgr->SendServerMessage(SERVER_MSG_STRING, msg);
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {}가 성공적으로 적용되었습니다.", phase);
@@ -349,17 +349,18 @@ void UpdateVendorItems(uint32 phase)
             itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase123.begin(), g_gerasVendorItemsPhase123.end());
             break;
         case 4:
+        case 5:
             itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase123.begin(), g_gerasVendorItemsPhase123.end());
             itemsToInsert.insert(itemsToInsert.end(), g_gerasVendorItemsPhase4.begin(), g_gerasVendorItemsPhase4.end());
             break;
-        case 5:
+        case 0: // 페이즈 0 명시적 처리
             break;
         default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 아이템 설정입니다.", phase);
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 아이템 설정입니다. 아이템을 추가하지 않습니다.", phase);
             break;
     }
 
-    if (phase < 5 && !itemsToInsert.empty())
+    if (!itemsToInsert.empty())
     {
         for (uint32 npcEntry : npcsToUpdate)
         {
@@ -369,9 +370,9 @@ void UpdateVendorItems(uint32 phase)
             }
         }
     }
-    else if (phase < 5 && itemsToInsert.empty())
+    else
     {
-        LOG_WARN("server.world", "[TBC 페이즈 알리미] 현재 페이즈({})에 삽입할 아이템이 없습니다.", phase);
+        LOG_INFO("server.world", "[TBC 페이즈 알리미] 현재 페이즈({})에 추가할 아이템이 없습니다.", phase);
     }
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 정의의 휘장 판매 목록 업데이트 완료 (페이즈: {}).", phase);
