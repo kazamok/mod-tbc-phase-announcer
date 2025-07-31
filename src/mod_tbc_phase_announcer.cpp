@@ -53,11 +53,6 @@ const std::set<uint32> g_badgeVendorNpcs = {
     27666  // 온투보
 };
 
-// 페이즈별 아이템 ID 목록
-const std::vector<uint32> g_phase5ItemsShaaniOntubo = {
-    32227, 32228, 32229, 32230, 32231, 32249, 35238, 35239, 35240, 35241, 35242, 35243, 35244, 35245, 35246, 35247, 35248, 35249, 35250, 35251, 35252, 35253, 35254, 35255, 35256, 35257, 35258, 35259, 35260, 35261, 35262, 35263, 35264, 35265, 35266, 35267, 35268, 35269, 35270, 35271, 35322, 35323, 35325, 35766, 35767, 35768, 35769, 37504
-};
-
 // 헬퍼 함수 선언
 std::vector<std::pair<uint32, uint32>> ParseVendorItemsConfig(const std::string& configString);
 void UpdateVendorItems(uint32 phase);
