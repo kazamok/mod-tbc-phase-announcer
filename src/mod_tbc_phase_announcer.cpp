@@ -212,7 +212,8 @@ void UpdateQuestAvailability(uint32 phase)
     const uint32 UNAVAILABLE_LEVEL = 99;
 
     const std::vector<std::pair<uint32, const std::vector<uint32>&>> phaseQuestMap = {
-        {4, g_phase4Quests}
+        {4, g_phase4Quests},
+        {5, g_phase5Quests} // Gemini CLI 에이전트 수정: 5페이즈 퀘스트 목록 추가
     };
 
     for (const auto& pair : phaseQuestMap)
