@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.5)
 set(MODULE_NAME "mod-tbc-phase-announcer")
 
 # 데이터 디렉토리 추가 (Add data directories)
-AC_ADD_SCRIPT("${CMAKE_CURRENT_LIST_DIR}/src/mod_tbc_phase_announcer.cpp")
+AC_ADD_SCRIPT("${CMAKE_CURRENT_LIST_DIR}/src/mod_tbc_phase_announcer.cpp" "mod_tbc_phase_announcer")
 
 # 설정 파일 설치 (Install configuration file)
 if(NOT WIN32)
