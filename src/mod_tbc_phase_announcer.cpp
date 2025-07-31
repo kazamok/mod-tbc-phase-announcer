@@ -33,7 +33,7 @@ const std::vector<uint32> g_phase5Objs = { 187056 }; // 쿠웰다나스 섬 차�
 
 // 페이즈별 퀘스트 목록
 const std::vector<uint32> g_phase4Quests = { 10984 }; // 오그릴라 시작 퀘 (샤트라스)
-const std::vector<uint32> g_phase5Quests = { 11481 }; // cris at the sunwell (샤트라스) // 추가됨
+const std::vector<uint32> g_phase5Quests = { 11481, 11482 }; // cris at the sunwell (샤트라스) // 추가됨
 
 
 // 정의의 휘장 판매 NPC ID
