@@ -41,6 +41,10 @@ extern const std::vector<uint32> g_phase5Objs;
 extern const std::vector<uint32> g_phase4Quests;
 extern const std::vector<uint32> g_phase5Quests;
 
+// 게라스 판매 아이템 목록 (설정 파일에서 로드)
+extern std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase123;
+extern std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase4;
+
 
 void ApplyPhaseChange(uint32 phase);
 void UpdateNpcVisibility(uint32 phase);
@@ -49,6 +53,7 @@ void UpdateGameObjectVisibility(uint32 phase);
 void CreateGameObjectSpawnMaskBackupTable();
 void UpdateQuestAvailability(uint32 phase);
 void CreateQuestMinLevelBackupTable();
+std::vector<std::pair<uint32, uint32>> ParseVendorItemsConfig(const std::string& configString);
 
 
 // TBC 콘텐츠 페이즈 안내 메시지
@@ -89,6 +94,15 @@ public:
 
     void OnAfterConfigLoad(bool reload) override
     {
+        // 설정 파일에서 판매 아이템 목록 읽기
+        std::string itemsPhase123 = sConfigMgr->GetOption<std::string>("Geras.Vendor.Items.Phase123", "");
+        g_gerasVendorItemsPhase123 = ParseVendorItemsConfig(itemsPhase123);
+        LOG_INFO("server.world", "[TBC 페이즈 알리미] 1-3페이즈 아이템 {}개 로드.", g_gerasVendorItemsPhase123.size());
+
+        std::string itemsPhase4 = sConfigMgr->GetOption<std::string>("Geras.Vendor.Items.Phase4", "");
+        g_gerasVendorItemsPhase4 = ParseVendorItemsConfig(itemsPhase4);
+        LOG_INFO("server.world", "[TBC 페이즈 알리미] 4페이즈 아이템 {}개 로드.", g_gerasVendorItemsPhase4.size());
+
         // 설정 파일에서 날짜 정보 읽기
         g_phaseDateOne = sConfigMgr->GetOption<std::string>("TBC.PhaseDateONE", "미정");
         g_phaseDateTwo = sConfigMgr->GetOption<std::string>("TBC.PhaseDateTWO", "미정");

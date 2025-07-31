@@ -426,7 +426,7 @@ void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)
     ChatHandler(player->GetSession()).PSendSysMessage(message);
 }
 
-void AddSC_mod_tbc_phase_announcer()
+void Addmod_tbc_phase_announcerScripts()
 {
     new mod_tbc_phase_announcer_player_script();
     new mod_tbc_phase_announcer_world_script();
