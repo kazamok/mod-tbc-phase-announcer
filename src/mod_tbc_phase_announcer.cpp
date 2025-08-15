@@ -31,39 +31,37 @@ const std::vector<uint32> g_phase3Npcs = { 21700, 18302, 18422 };
 // 오그릴라
 const std::vector<uint32> g_phase4Npcs = { 23257,22987,22940,22931,23113,23115,23432,23362,23112,23253,22264,22271,23233,23347,23316,23300,23110,22266,22270,23428,23256,23334,23208,23392,23120,23473,23413,23335,};
 
-// 태양샘
+// 태양샘 5페이즈
+// const std::vector<uint32> g_phase5Npcs_Scourge = { 37541,37539,37538,27059,25003,25031,25001,25002,24999,25030,25027,25028,25047,24966,24960,29341 };
+// const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 37523,37527,25170,25175,24994,26253,25236,25059,24938,25115,24965,25108,24967,25069,25061,25088,25037,25043,25112,25163,25032,24972,25057,25133,24813,25035,25034,25144,37509,37512,37211,25164 };
+// const std::vector<uint32> g_phase5Npcs_Dawnblade = { 24979,25087,24978,25063,24976,25161 };
+// const std::vector<uint32> g_phase5Npcs_Misc = { 37542,37552,37205,25174,25169,25060,25073,26092,26560,26091,25977,26090,25039,25976,25162,25036,24975,25045,25049,25084,6491,30481,25225,37707 };
 const std::vector<uint32> g_phase5Npcs_Scourge = { 200065 };
 const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 200066 };
 const std::vector<uint32> g_phase5Npcs_Dawnblade = { 200067 };
 const std::vector<uint32> g_phase5Npcs_Misc = { 200068 };
-const std::vector<uint32> g_phase5Npcs_Shattrath = { 200069 };
-
-/*
-const std::vector<uint32> g_phase5Npcs_Scourge = { 37541,37539,37538,27059,25003,25031,25001,25002,24999,25030,25027,25028,25047,24966,24960,29341 };
-const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 37523,37527,25170,25175,24994,26253,25236,25059,24938,25115,24965,25108,24967,25046,25069,25061,25088,25037,25043,25112,25163,25032,24972,25057,25133,24813,25035,25034,25144,37509,37512,37211,25164 };
-const std::vector<uint32> g_phase5Npcs_Dawnblade = { 24979,25087,24978,25063,24976,25161 };
-const std::vector<uint32> g_phase5Npcs_Misc = { 27666,27667,37542,37552,37205,25174,25169,25060,25073,26092,26560,26091,25977,26090,25039,26089,25976,25162,25036,24975,25950,25045,25049,25084,6491,30481,25225,37707 };
+// const std::vector<uint32> g_phase5Npcs_Shattrath = { 200069 }; 샤트라스NPC만 가시성 조절
 const std::vector<uint32> g_phase5Npcs_Shattrath = { 19202,19216,19475,24938,25134,25135,25136,25137,25138,25140,25141,25142,25143,25153,25155,25167,25885 };
-*/
+
 
 // 페이즈별 오브젝트 목록
-const std::vector<uint32> g_phase5Objs = { /* 187056 */ ,1000010 }; // 쿠웰다나스 섬 차원문 (샤트라스)
+const std::vector<uint32> g_phase5Objs = { /* 187056 */ 1000010 }; // 쿠웰다나스 섬 차원문 (샤트라스) 페이즈별로 자동 구현됨 (삭제) 1000010은 코드 문맥상
 
 
 // 페이즈별 퀘스트 목록
 const std::vector<uint32> g_phase4Quests = { 10984 }; // 오그릴라 시작 퀘 (샤트라스)
-const std::vector<uint32> g_phase5Quests = { 11481, 11482 }; // cris at the sunwell (샤트라스 일일퀘) // 추가됨
+const std::vector<uint32> g_phase5Quests = { 30001 /* 11481, 11482 */ }; // cris at the sunwell (샤트라스 일일퀘) // PoolMgr.cpp 풀에서 제외시켜서 (삭제) 30001은 코드 문맥상
 
 
 // 정의의 휘장 판매 NPC ID
 const std::set<uint32> g_badgeVendorNpcs = {
-    // 18525 // , // 게라스
+    18525  // 게라스 만 판매아이템 조절하면 됨
     // 25046, // 하우타
     // 27667, // 안웨후
     // 26089, // 케이리
     // 25950, // 샤아니
     // 27666  // 온투보
-	200070 // TEMP_NPC_NAME
+	// 200070 // TEMP_NPC_NAME
 };
 
 // 헬퍼 함수 선언
@@ -433,6 +431,24 @@ void mod_tbc_phase_announcer_player_script::OnPlayerLogin(Player* player)
 
     player->GetSession()->SendAreaTriggerMessage(message);
     ChatHandler(player->GetSession()).PSendSysMessage(message);
+}
+
+void mod_tbc_phase_announcer_player_script::OnPlayerUpdateArea(Player* player, uint32 /*oldArea*/, uint32 /*newArea*/)
+{
+    if (g_currentPhase < 5)
+    {
+        if (player->GetZoneId() == 4080) // Isle of Quel'Danas Zone ID
+        {
+            if (player->IsGameMaster())
+            {
+                ChatHandler(player->GetSession()).PSendSysMessage("Sunwell content is currently in Phase %u, but your GM status allows access.", g_currentPhase);
+                return;
+            }
+
+            player->GetSession()->SendAreaTriggerMessage("The Isle of Quel'Danas is not yet accessible.");
+            player->TeleportTo(530, -1846.856f, 5479.334f, -12.428f, 1.6f); // Teleport to Shattrath
+        }
+    }
 }
 
 void Addmod_tbc_phase_announcerScripts()

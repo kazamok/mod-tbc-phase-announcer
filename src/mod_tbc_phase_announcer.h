@@ -13,6 +13,7 @@ mod_tbc_phase_announcer.h */
 #include "WorldScript.h"
 #include <vector>
 #include <set>
+#include "PlayerScript.h"
 
 // 전역 변수로 현재 페이즈를 저장
 extern uint32 g_currentPhase;
@@ -59,7 +60,7 @@ std::vector<std::pair<uint32, uint32>> ParseVendorItemsConfig(const std::string&
 // TBC 콘텐츠 페이즈 안내 메시지
 static const char* TBC_PHASE_MESSAGES[] =
 {
-    "|CFFFFFFFF[TBC 페이즈 알리미]|r 알 수 없는 페이즈입니다.", // 0번 인덱스는 사용하지 않음
+    "|CFFFFFFFF[TBC 페이즈 알리미]|r 초기화 0페이즈입니다.", // 0번 인덱스는 사용하지 않음
     "|CFFFFFFFF[TBC 페이즈 알리미]|r 이 서버는 현재 1페이즈 (카라잔, 그룰의 둥지, 마그테리돈의 둥지) 진행중입니다.",
     "|CFFFFFFFF[TBC 페이즈 알리미]|r 이 서버는 현재 2페이즈 (불뱀 제단, 폭풍우 요새) 진행중입니다.",
     "|CFFFFFFFF[TBC 페이즈 알리미]|r 이 서버는 현재 3페이즈 (하이잘 정상, 검은 사원) 진행중입니다.",
@@ -75,6 +76,7 @@ public:
 
     void OnPlayerLogin(Player* player) override;
     bool OnPlayerBeforeTeleport(Player* player, uint32 mapid, float x, float y, float z, float orientation, uint32 options, Unit* target) override;
+    void OnPlayerUpdateArea(Player* player, uint32 oldArea, uint32 newArea) override;
 };
 
 class mod_tbc_phase_announcer_world_script : public WorldScript
