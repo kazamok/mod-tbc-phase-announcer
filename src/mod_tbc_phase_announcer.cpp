@@ -13,7 +13,7 @@
 #include <sstream>
 
 // 전역 변수 정의
-uint32 g_currentPhase = 1;
+uint32 g_currentPhase = 0;
 std::string g_phaseDateOne = "";
 std::string g_phaseDateTwo = "";
 std::string g_phaseDateThree = "";
@@ -27,30 +27,43 @@ std::vector<std::pair<uint32, uint32>> g_gerasVendorItemsPhase4;
 // 페이즈별 NPC 목록 정의 (추가 가능)
 const std::vector<uint32> g_phase2Npcs = { 19431, 21978, 19684 };
 const std::vector<uint32> g_phase3Npcs = { 21700, 18302, 18422 };
+
+// 오그릴라
 const std::vector<uint32> g_phase4Npcs = { 23257,22987,22940,22931,23113,23115,23432,23362,23112,23253,22264,22271,23233,23347,23316,23300,23110,22266,22270,23428,23256,23334,23208,23392,23120,23473,23413,23335,};
+
+// 태양샘
+const std::vector<uint32> g_phase5Npcs_Scourge = { 200065 };
+const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 200066 };
+const std::vector<uint32> g_phase5Npcs_Dawnblade = { 200067 };
+const std::vector<uint32> g_phase5Npcs_Misc = { 200068 };
+const std::vector<uint32> g_phase5Npcs_Shattrath = { 200069 };
+
+/*
 const std::vector<uint32> g_phase5Npcs_Scourge = { 37541,37539,37538,27059,25003,25031,25001,25002,24999,25030,25027,25028,25047,24966,24960,29341 };
 const std::vector<uint32> g_phase5Npcs_ShatteredSun = { 37523,37527,25170,25175,24994,26253,25236,25059,24938,25115,24965,25108,24967,25046,25069,25061,25088,25037,25043,25112,25163,25032,24972,25057,25133,24813,25035,25034,25144,37509,37512,37211,25164 };
 const std::vector<uint32> g_phase5Npcs_Dawnblade = { 24979,25087,24978,25063,24976,25161 };
 const std::vector<uint32> g_phase5Npcs_Misc = { 27666,27667,37542,37552,37205,25174,25169,25060,25073,26092,26560,26091,25977,26090,25039,26089,25976,25162,25036,24975,25950,25045,25049,25084,6491,30481,25225,37707 };
 const std::vector<uint32> g_phase5Npcs_Shattrath = { 19202,19216,19475,24938,25134,25135,25136,25137,25138,25140,25141,25142,25143,25153,25155,25167,25885 };
+*/
 
 // 페이즈별 오브젝트 목록
-const std::vector<uint32> g_phase5Objs = { 187056 }; // 쿠웰다나스 섬 차원문 (샤트라스)
+const std::vector<uint32> g_phase5Objs = { /* 187056 */ ,1000010 }; // 쿠웰다나스 섬 차원문 (샤트라스)
 
 
 // 페이즈별 퀘스트 목록
 const std::vector<uint32> g_phase4Quests = { 10984 }; // 오그릴라 시작 퀘 (샤트라스)
-const std::vector<uint32> g_phase5Quests = { 11481, 11482 }; // cris at the sunwell (샤트라스) // 추가됨
+const std::vector<uint32> g_phase5Quests = { 11481, 11482 }; // cris at the sunwell (샤트라스 일일퀘) // 추가됨
 
 
 // 정의의 휘장 판매 NPC ID
 const std::set<uint32> g_badgeVendorNpcs = {
-    18525 // , // 게라스
+    // 18525 // , // 게라스
     // 25046, // 하우타
     // 27667, // 안웨후
     // 26089, // 케이리
     // 25950, // 샤아니
     // 27666  // 온투보
+	200070 // TEMP_NPC_NAME
 };
 
 // 헬퍼 함수 선언
@@ -229,7 +242,7 @@ void UpdateQuestAvailability(uint32 phase)
 
     const std::vector<std::pair<uint32, const std::vector<uint32>&>> phaseQuestMap = {
         {4, g_phase4Quests},
-        {5, g_phase5Quests} // Gemini CLI 에이전트 수정: 5페이즈 퀘스트 목록 추가
+        {5, g_phase5Quests} // 에이전트 수정: 5페이즈 퀘스트 목록 추가
     };
 
     for (const auto& pair : phaseQuestMap)
@@ -297,7 +310,7 @@ void ApplyPhaseChange(uint32 phase)
             LOG_INFO("server.world", "[TBC 페이즈 알리미] 5페이즈 컨텐츠 활성화.");
             break;
         default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})를 적용합니다. 모든 페이즈 컨텐츠를 비활성화합니다.", phase);
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 초기화 페이즈({})를 적용합니다. 모든 페이즈 컨텐츠를 비활성화합니다.", phase);
             break;
     }
 
@@ -351,7 +364,7 @@ void UpdateVendorItems(uint32 phase)
         case 0: // 페이즈 0 명시적 처리
             break;
         default:
-            LOG_WARN("server.world", "[TBC 페이즈 알리미] 알 수 없는 페이즈({})에 대한 아이템 설정입니다. 아이템을 추가하지 않습니다.", phase);
+            LOG_WARN("server.world", "[TBC 페이즈 알리미] 초기화 페이즈({})에 대한 아이템 설정입니다. 아이템을 추가하지 않습니다.", phase);
             break;
     }
 
