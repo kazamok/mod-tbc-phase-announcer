@@ -45,12 +45,12 @@ const std::vector<uint32> g_phase5Npcs_Shattrath = { 19202,19216,19475,24938,251
 
 
 // 페이즈별 오브젝트 목록
-const std::vector<uint32> g_phase5Objs = { /* 187056 */ 1000010 }; // 쿠웰다나스 섬 차원문 (샤트라스) 페이즈별로 자동 구현됨 (삭제) 1000010은 코드 문맥상
+const std::vector<uint32> g_phase5Objs = { /* 187056 */ 1000010 }; // 쿠웰다나스 섬 차원문 (샤트라스) 페이즈별로 자동 구현되어 삭제,, 1000010은 유지 문맥 상 코드 오류 우회
 
 
 // 페이즈별 퀘스트 목록
 const std::vector<uint32> g_phase4Quests = { 10984 }; // 오그릴라 시작 퀘 (샤트라스)
-const std::vector<uint32> g_phase5Quests = { 30001 /* 11481, 11482 */ }; // cris at the sunwell (샤트라스 일일퀘) // PoolMgr.cpp 풀에서 제외시켜서 (삭제) 30001은 코드 문맥상
+const std::vector<uint32> g_phase5Quests = { 11499, 11500, 11481, 11482 }; // 태양샘 고원 일일 퀘스트, 그 다음은 시작퀘
 
 
 // 정의의 휘장 판매 NPC ID
@@ -441,11 +441,11 @@ void mod_tbc_phase_announcer_player_script::OnPlayerUpdateArea(Player* player, u
         {
             if (player->IsGameMaster())
             {
-                ChatHandler(player->GetSession()).PSendSysMessage("Sunwell content is currently in Phase %u, but your GM status allows access.", g_currentPhase);
+                ChatHandler(player->GetSession()).PSendSysMessage("현재 {}페이즈에 있지만, GM 상태로 액세스할 수 있습니다.", g_currentPhase);
                 return;
             }
 
-            player->GetSession()->SendAreaTriggerMessage("The Isle of Quel'Danas is not yet accessible.");
+            player->GetSession()->SendAreaTriggerMessage("쿠엘다나스 섬은 아직 접근이 불가합니다.");
             player->TeleportTo(530, -1846.856f, 5479.334f, -12.428f, 1.6f); // Teleport to Shattrath
         }
     }
