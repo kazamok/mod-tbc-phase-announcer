@@ -286,6 +286,15 @@ void UpdateQuestAvailability(uint32 phase)
 
 void ApplyPhaseChange(uint32 phase)
 {
+    // Read Expansion setting from worldserver.conf
+    int32 expansion = sConfigMgr->GetOption("Expansion", 2); // Default to 2 (WotLK) if not found
+
+    if (expansion == 0)
+    {
+        LOG_INFO("server.world", "[TBC 페이즈 알리미] worldserver.conf의 Expansion 설정이 0이므로 TBC 페이즈 알리미 모듈이 비활성화됩니다.");
+        return; // Disable module functionality
+    }
+
     g_currentPhase = phase;
 
     LOG_INFO("server.world", "[TBC 페이즈 알리미] 페이즈 {} 적용 중...", phase);
